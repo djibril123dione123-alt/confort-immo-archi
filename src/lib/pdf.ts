@@ -32,7 +32,7 @@ export function drawPageBorder(doc: jsPDF) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 5; // distance entre la bordure et le bord de la page
 
-  doc.setLineWidth(0.5); // épaisseur de la bordure
+  doc.setLineWidth(1); // épaisseur de la bordure
   doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
 }
 
