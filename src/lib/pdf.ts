@@ -27,6 +27,14 @@ export function formatCurrency(amount: number | string): string {
       .replace(/\u00A0/g, " ") + " F CFA"
   );
 }
+export function drawPageBorder(doc: jsPDF) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 5; // distance entre la bordure et le bord de la page
+
+  doc.setLineWidth(0.5); // épaisseur de la bordure
+  doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
+}
 
 /**
  * Ajoute un footer avec numéro de page
