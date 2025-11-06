@@ -283,13 +283,13 @@ const formatCurrency = (amount: number | string): string => {
           <p className="text-slate-600">Gestion des paiements de loyers</p>
         </div>
         <div className="flex gap-3">
-          <button
+          {/*<button
             onClick={exportPDF}
             className="flex items-center gap-2 px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition"
           >
             <Download className="w-5 h-5" />
             Export PDF
-          </button>
+          </button>*/}
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
