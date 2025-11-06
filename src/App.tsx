@@ -10,6 +10,7 @@ import { Locataires } from './pages/Locataires';
 import { Contrats } from './pages/Contrats';
 import { Paiements } from './pages/Paiements';
 import { Comptabilite } from './pages/Comptabilite';
+import { BilanEntreprise } from './pages/BilanEntreprise';
 import { LoyersImpayes } from './pages/LoyersImpayes';
 import { RapportsImmeubles } from './pages/RapportsImmeubles';
 import { BilansMensuels } from './pages/BilansMensuels';
@@ -49,6 +50,8 @@ function AppContent() {
         return <Paiements />;
       case 'loyers-impayes':
         return <LoyersImpayes />;
+      case 'bilan-entreprise':
+        return <BilanEntreprise />;
       case 'rapports-immeubles':
         return <RapportsImmeubles />;
       case 'bilans-mensuels':
