@@ -86,7 +86,7 @@ export function LoginForm() {
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-600">
-          <p>Compte de démonstration disponible</p>
+          <p>Connectez vous a votre Compte </p>
         </div>
       </div>
     </div>
