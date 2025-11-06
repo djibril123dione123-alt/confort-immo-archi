@@ -208,12 +208,23 @@ const exportFacture = async (paiementId: string) => {
   }
 };
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-    }).format(amount);
+const formatCurrency = (amount: number | string): string => {
+  if (!amount) return "0 F CFA";
+
+  // Nettoyage des formats erronés (ex: 75/000, 250 /000 etc.)
+  const cleaned = String(amount)
+    .replace(/\//g, "") // retire les slashs
+    .replace(/\s/g, ""); // retire les espaces parasites
+
+  const num = Number(cleaned);
+
+  return (
+    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 0 })
+      .format(num)
+      .replace(/\u00A0/g, " ") + " F CFA"
+  );
+};
+
 
   const columns = [
     {
