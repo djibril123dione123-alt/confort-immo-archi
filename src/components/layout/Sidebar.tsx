@@ -35,6 +35,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'contrats', label: 'Contrats', icon: FileText, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
     { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
     { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] },
+    { id: 'bilan-entreprise', label: 'Bilan entreprise', icon: BarChart3, roles: ['admin', 'comptable'] },
     { id: 'rapports-immeubles', label: 'Rapports immeubles', icon: BarChart3, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
     { id: 'bilans-mensuels', label: 'Bilans mensuels', icon: FileBarChart, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
     { id: 'filtres-avances', label: 'Filtres avancés', icon: Filter, roles: ['admin', 'agent', 'comptable'] },
