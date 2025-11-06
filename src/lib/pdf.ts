@@ -155,6 +155,9 @@ export async function generateContratPDF(contrat: any) {
     const pageHeight = doc.internal.pageSize.getHeight();
     let y = 25;
 
+    // Dessiner une bordure
+doc.setLineWidth(0.5); // épaisseur de la bordure
+doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
     // TITRE sur la première page uniquement
     doc.setFontSize(16);
     doc.setFont(undefined, 'bold');
