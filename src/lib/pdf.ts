@@ -11,17 +11,23 @@ import autoTable from 'jspdf-autotable';
 /**
  * Format XOF propre : 75 000 F CFA
  */
-export function formatCurrencyXOF(amount: number | string) {
-  if (!amount) return '0 F CFA';
-  const num = Number(amount);
+export function formatCurrency(amount: number | string): string {
+  if (!amount) return "0 F CFA";
+
+  // 🧹 Nettoyage des erreurs de format ("/", espaces, etc.)
+  const cleaned = String(amount)
+    .replace(/\//g, "") // enlève tous les slashs
+    .replace(/\s/g, ""); // enlève espaces inutiles
+
+  const num = Number(cleaned);
 
   return (
-    new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
+    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 0 })
       .format(num)
-      .replace(/\u00A0/g, ' ')
-      + ' F CFA'
+      .replace(/\u00A0/g, " ") + " F CFA"
   );
 }
+
 
 
 /**
