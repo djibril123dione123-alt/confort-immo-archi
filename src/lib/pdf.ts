@@ -180,7 +180,9 @@ drawPageBorder(doc);
       // Passage à la page suivante si besoin
       if (y > pageHeight - 20) {
         doc.addPage();
-        y = 25;
+drawPageBorder(doc); // Bordure sur la nouvelle page
+y = 25; // réinitialiser la position verticale
+
 
         // **Ne pas répéter le titre sur les pages suivantes**
         isFirstPage = false;
@@ -255,12 +257,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
   const title = 'Quittance Loyer';
   const titleFontSize = 16;
   const bodyFontSize = 11;
-  const margin = 5; // marge autour de la bordure
-
-function drawPageBorder(doc: jsPDF) {
-  doc.setLineWidth(1); // épaisseur de la bordure
-  doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
-}
+  
 
   // Titre
   doc.setFont(undefined, 'bold');
