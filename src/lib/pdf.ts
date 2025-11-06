@@ -255,6 +255,12 @@ export async function generatePaiementFacturePDF(paiement: any) {
   const title = 'Quittance Loyer';
   const titleFontSize = 16;
   const bodyFontSize = 11;
+  const margin = 5; // marge autour de la bordure
+
+function drawPageBorder(doc: jsPDF) {
+  doc.setLineWidth(1); // épaisseur de la bordure
+  doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
+}
 
   // Titre
   doc.setFont(undefined, 'bold');
