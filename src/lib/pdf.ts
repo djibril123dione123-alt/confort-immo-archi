@@ -135,8 +135,8 @@ export async function generateContratPDF(contrat: any) {
       duree_annees: dureeAnnees,
       date_debut: contrat.date_debut ? new Date(contrat.date_debut).toLocaleDateString('fr-FR') : '…',
       date_fin: contrat.date_fin ? new Date(contrat.date_fin).toLocaleDateString('fr-FR') : '…',
-      loyer_mensuel: formatCurrencyXOF(Number(contrat.loyer_mensuel || 0)),
-      depot_garantie: contrat.caution ? formatCurrencyXOF(Number(contrat.caution)) : '',
+      loyer_mensuel: formatCurrency(Number(contrat.loyer_mensuel || 0)),
+      depot_garantie: contrat.caution ? formatCurrency(Number(contrat.caution)) : '',
       date_du_jour: new Date().toLocaleDateString('fr-FR'),
     };
 
@@ -295,9 +295,9 @@ export async function generatePaiementFacturePDF(paiement: any) {
     startY: y,
     head: [['Libellé', 'Montant']],
     body: [
-      ['Montant du loyer', formatCurrencyXOF(loyer)],
-      ['Montant payé', formatCurrencyXOF(paye)],
-      ['Reliquat (reste à payer)', formatCurrencyXOF(reliquat)],
+      ['Montant du loyer', formatCurrency(loyer)],
+      ['Montant payé', formatCurrency(paye)],
+      ['Reliquat (reste à payer)', formatCurrency(reliquat)],
     ],
     theme: 'plain',
     styles: { fontSize: 10, cellPadding: 3 },
