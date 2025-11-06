@@ -184,16 +184,10 @@ drawPageBorder(doc);
     const lines = doc.splitTextToSize(body, usableWidth);
     let isFirstPage = true;
 
-for (const line of lines) {
-  // Passage à la page suivante si besoin
-  if (y > pageHeight - 20) {
-    doc.addPage();
-    drawPageBorder(doc); // Bordure sur la nouvelle page
-    y = 25; // réinitialiser la position verticale
-  }
-  // ... reste du code
-}
-
+    for (const line of lines) {
+      // Passage à la page suivante si besoin
+      if (y > pageHeight - 20) {
+        doc.addPage();
 
 
 
