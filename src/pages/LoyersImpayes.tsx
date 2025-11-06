@@ -218,13 +218,13 @@ export function LoyersImpayes() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Loyers Impayés</h1>
           <p className="text-slate-600">Suivi des loyers en retard</p>
         </div>
-        <button
+        {/*<button
           onClick={exportPDF}
           className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
         >
           <Download className="w-5 h-5" />
           Export PDF
-        </button>
+        </button>*/}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
