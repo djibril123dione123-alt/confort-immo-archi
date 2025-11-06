@@ -157,7 +157,7 @@ export async function generateContratPDF(contrat: any) {
     const margin = 5; // marge autour de la bordure
 
 function drawPageBorder(doc: jsPDF) {
-  doc.setLineWidth(2); // épaisseur de la bordure
+  doc.setLineWidth(1.5); // épaisseur de la bordure
   doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
 }
 
