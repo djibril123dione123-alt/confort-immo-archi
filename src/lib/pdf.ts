@@ -28,8 +28,6 @@ export function formatCurrency(amount: number | string): string {
   );
 }
 
-
-
 /**
  * Ajoute un footer avec numéro de page
  */
@@ -302,7 +300,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
     theme: 'plain',
     styles: { fontSize: 10, cellPadding: 3 },
     headStyles: { fontStyle: 'bold' },
-    bodyStyles: { fontStyle: 'bold' },
+    bodyStyles: { fontStyle: 'normal' },
     margin: { left: leftMargin, right: rightMargin },
     tableWidth: usableWidth,
   });
