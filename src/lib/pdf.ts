@@ -32,7 +32,7 @@ export function drawPageBorder(doc: jsPDF) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 5; // distance entre la bordure et le bord de la page
 
-  doc.setLineWidth(1); // épaisseur de la bordure
+  doc.setLineWidth(0.5); // épaisseur de la bordure
   doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
 }
 
@@ -181,7 +181,6 @@ export async function generateContratPDF(contrat: any) {
       // Passage à la page suivante si besoin
       if (y > pageHeight - 20) {
         doc.addPage();
-        drawPageBorder(doc);
         y = 25;
 
         // **Ne pas répéter le titre sur les pages suivantes**
@@ -240,7 +239,7 @@ export async function generateContratPDF(contrat: any) {
 export async function generatePaiementFacturePDF(paiement: any) {
   if (!paiement) throw new Error('Aucun paiement fourni');
 
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  const doc = new jsPDF({ unit: 'mm', format: 'a4/2', compress: true });
   const contrat = paiement?.contrats || {};
   const locataire = contrat?.locataires || {};
   const unite = contrat?.unites || {};
@@ -257,8 +256,6 @@ export async function generatePaiementFacturePDF(paiement: any) {
   const title = 'Quittance Loyer';
   const titleFontSize = 16;
   const bodyFontSize = 11;
-  drawPageBorder(doc); // bordure sur la première page
-
 
   // Titre
   doc.setFont(undefined, 'bold');
@@ -311,7 +308,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
       ['Montant payé', formatCurrency(paye)],
       ['Reliquat (reste à payer)', formatCurrency(reliquat)],
     ],
-    theme: 'grid',
+    theme: 'plain',
     styles: { fontSize: 10, cellPadding: 3 },
     headStyles: { fontStyle: 'bold' },
     bodyStyles: { fontStyle: 'bold' },
@@ -391,8 +388,6 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     const titleFontSize = 16;
     const bodyFontSize = 11;
     const lineHeight = 7;
-    drawPageBorder(doc); // bordure sur la première page
-
 
     // TITRE UNIQUEMENT SUR LA PREMIÈRE PAGE
     doc.setFont(undefined, 'bold');
@@ -410,7 +405,6 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     for (const line of lines) {
       if (y > pageHeight - marginBottom) {
         doc.addPage();
-        drawPageBorder(doc);
         y = 25; // nouvelle page, mais **pas de titre**
       }
 
