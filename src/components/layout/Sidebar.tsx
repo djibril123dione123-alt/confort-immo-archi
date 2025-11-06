@@ -52,7 +52,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           
           <div>
             <h1 className="text-lg font-bold">Confort Immo Archi</h1>
-            <p className="text-xs text-slate-400">    Gestion immobilière</p>
+            <p className="text-xs text-slate-400">Gestion immobilière</p>
           </div>
         </div>
       </div>
