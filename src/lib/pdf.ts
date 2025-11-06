@@ -300,7 +300,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
     theme: 'plain',
     styles: { fontSize: 10, cellPadding: 3 },
     headStyles: { fontStyle: 'bold' },
-    bodyStyles: { fontStyle: 'normal' },
+    bodyStyles: { fontStyle: 'bold' },
     margin: { left: leftMargin, right: rightMargin },
     tableWidth: usableWidth,
   });
