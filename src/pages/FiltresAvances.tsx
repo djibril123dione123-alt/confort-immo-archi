@@ -247,13 +247,15 @@ export function FiltresAvances() {
     XLSX.writeFile(wb, 'filtres-avances.xlsx');
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+const formatCurrency = (amount: number) => {
+  if (!amount) return '0 F CFA';
+  return (
+    new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
+      .format(amount)
+      .replace(/\u00A0/g, ' ') + ' F CFA'
+  );
+};
+
 
   const activeFiltersCount = Object.values(filters).filter(v => v !== '').length;
 
