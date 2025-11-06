@@ -240,7 +240,7 @@ export async function generateContratPDF(contrat: any) {
 export async function generatePaiementFacturePDF(paiement: any) {
   if (!paiement) throw new Error('Aucun paiement fourni');
 
-  const doc = new jsPDF({ unit: 'mm', format: 'a5', compress: true });
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
   const contrat = paiement?.contrats || {};
   const locataire = contrat?.locataires || {};
   const unite = contrat?.unites || {};
