@@ -297,7 +297,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
       ['Montant payé', formatCurrency(paye)],
       ['Reliquat (reste à payer)', formatCurrency(reliquat)],
     ],
-    theme: 'plain',
+    theme: 'grid',
     styles: { fontSize: 10, cellPadding: 3 },
     headStyles: { fontStyle: 'bold' },
     bodyStyles: { fontStyle: 'bold' },
