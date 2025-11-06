@@ -32,9 +32,10 @@ export function drawPageBorder(doc: jsPDF) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 5; // distance entre la bordure et le bord de la page
 
-  doc.setLineWidth(1); // épaisseur de la bordure
+  doc.setLineWidth(0.5); // épaisseur de la bordure
   doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
 }
+
 
 /**
  * Ajoute un footer avec numéro de page
@@ -162,16 +163,6 @@ export async function generateContratPDF(contrat: any) {
     const lineHeight = 7;
     const pageHeight = doc.internal.pageSize.getHeight();
     let y = 25;
-    const margin = 5; // marge autour de la bordure
-
-function drawPageBorder(doc: jsPDF) {
-  doc.setLineWidth(1.5); // épaisseur de la bordure
-  doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
-}
-
-// Dessiner la bordure sur la première page
-drawPageBorder(doc);
-
 
     // TITRE sur la première page uniquement
     doc.setFontSize(16);
@@ -188,9 +179,7 @@ drawPageBorder(doc);
       // Passage à la page suivante si besoin
       if (y > pageHeight - 20) {
         doc.addPage();
-drawPageBorder(doc); // Bordure sur la nouvelle page
-y = 25; // réinitialiser la position verticale
-
+        y = 25;
 
         // **Ne pas répéter le titre sur les pages suivantes**
         isFirstPage = false;
@@ -265,8 +254,6 @@ export async function generatePaiementFacturePDF(paiement: any) {
   const title = 'Quittance Loyer';
   const titleFontSize = 16;
   const bodyFontSize = 11;
-  drawPageBorder(doc); // bordure sur la première page
-  
 
   // Titre
   doc.setFont(undefined, 'bold');
@@ -319,7 +306,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
       ['Montant payé', formatCurrency(paye)],
       ['Reliquat (reste à payer)', formatCurrency(reliquat)],
     ],
-    theme: 'grid',
+    theme: 'plain',
     styles: { fontSize: 10, cellPadding: 3 },
     headStyles: { fontStyle: 'bold' },
     bodyStyles: { fontStyle: 'bold' },
@@ -411,8 +398,7 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     const lines = doc.splitTextToSize(body, usableWidth);
     const pageHeight = doc.internal.pageSize.getHeight();
     const marginBottom = 20;
-    drawPageBorder(doc); // bordure sur la première page
-
+    let y = 25;
 
     for (const line of lines) {
       if (y > pageHeight - marginBottom) {
