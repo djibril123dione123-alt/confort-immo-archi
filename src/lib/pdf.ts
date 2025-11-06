@@ -189,7 +189,7 @@ drawPageBorder(doc);
       if (y > pageHeight - 20) {
         doc.addPage();
         drawPageBorder(doc); // Bordure sur la nouvelle page
-        y = ;25; // réinitialiser la position verticale
+        y = ;25 // réinitialiser la position verticale
 
 
 
