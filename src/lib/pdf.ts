@@ -167,7 +167,7 @@ export async function generateContratPDF(contrat: any) {
 function drawPageBorder(doc: jsPDF) {
   doc.setLineWidth(1); // épaisseur de la bordure
   doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
-}
+
 
 // Dessiner la bordure sur la première page
 drawPageBorder(doc);
