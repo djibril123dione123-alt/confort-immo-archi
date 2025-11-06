@@ -265,6 +265,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
   const title = 'Quittance Loyer';
   const titleFontSize = 16;
   const bodyFontSize = 11;
+  drawPageBorder(doc); // bordure sur la première page
   
 
   // Titre
@@ -410,7 +411,8 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     const lines = doc.splitTextToSize(body, usableWidth);
     const pageHeight = doc.internal.pageSize.getHeight();
     const marginBottom = 20;
-    let y = 25;
+    drawPageBorder(doc); // bordure sur la première page
+
 
     for (const line of lines) {
       if (y > pageHeight - marginBottom) {
