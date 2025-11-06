@@ -9,17 +9,20 @@ import autoTable from 'jspdf-autotable';
  */
 
 /**
- * Format monétaire pour XOF avec séparateur correct
+ * Format XOF propre : 75 000 F CFA
  */
-export function formatCurrencyXOF(amount: number) {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    minimumFractionDigits: 0,
-  })
-    .format(amount)
-    .replace(/\u00A0/g, ' ');
+export function formatCurrencyXOF(amount: number | string) {
+  if (!amount) return '0 F CFA';
+  const num = Number(amount);
+
+  return (
+    new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
+      .format(num)
+      .replace(/\u00A0/g, ' ')
+      + ' F CFA'
+  );
 }
+
 
 /**
  * Ajoute un footer avec numéro de page
