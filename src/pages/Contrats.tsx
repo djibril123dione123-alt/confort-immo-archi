@@ -177,14 +177,23 @@ export function Contrats() {
     setFormData({ locataire_id: '', unite_id: '', date_debut: '', date_fin: '', loyer_mensuel: '', caution: '', pourcentage_agence: '10', statut: 'actif' });
   };
 
-const formatCurrency = (amount: number) => {
-  if (!amount) return '0 F CFA';
+const formatCurrency = (amount: number | string): string => {
+  if (!amount) return "0 F CFA";
+
+  // Nettoyage des formats erronés ("/", espaces multiples, etc.)
+  const cleaned = String(amount)
+    .replace(/\//g, "") // retire tous les slashs
+    .replace(/\s/g, ""); // retire les espaces parasites
+
+  const num = Number(cleaned);
+
   return (
-    new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
-      .format(amount)
-      .replace(/\u00A0/g, ' ') + ' F CFA'
+    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 0 })
+      .format(num)
+      .replace(/\u00A0/g, " ") + " F CFA"
   );
 };
+
 
 
   const columns = [
