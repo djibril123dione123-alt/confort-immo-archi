@@ -167,7 +167,7 @@ export async function generateContratPDF(contrat: any) {
 function drawPageBorder(doc: jsPDF) {
   doc.setLineWidth(1); // épaisseur de la bordure
   doc.rect(margin, margin, pageWidth - 2 * margin, pageHeight - 2 * margin);
-
+}
 
 // Dessiner la bordure sur la première page
 drawPageBorder(doc);
@@ -188,8 +188,9 @@ drawPageBorder(doc);
       // Passage à la page suivante si besoin
       if (y > pageHeight - 20) {
         doc.addPage();
-drawPageBorder(doc); // Bordure sur la nouvelle page
+        drawPageBorder(doc); // Bordure sur la nouvelle page
 y = 25; // réinitialiser la position verticale
+
 
 
         // **Ne pas répéter le titre sur les pages suivantes**
