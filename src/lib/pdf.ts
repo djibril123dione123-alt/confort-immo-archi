@@ -256,7 +256,7 @@ export async function generatePaiementFacturePDF(paiement: any) {
   let y = 25;
 
   // Référence
-  doc.setFont(undefined, 'normal');
+  doc.setFont(undefined, 'bold');
   doc.text(`Référence : ${ref}`, leftMargin, y);
   y += 6;
 
