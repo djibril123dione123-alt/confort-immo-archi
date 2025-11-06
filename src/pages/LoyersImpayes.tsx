@@ -161,13 +161,15 @@ export function LoyersImpayes() {
     doc.save('loyers-impayes.pdf');
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+ const formatCurrency = (amount: number) => {
+  if (!amount) return '0 F CFA';
+  return (
+    new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
+      .format(amount)
+      .replace(/\u00A0/g, ' ') + ' F CFA'
+  );
+};
+
 
   const totalImpaye = filtered.reduce((sum, i) => sum + i.montant_du, 0);
 
