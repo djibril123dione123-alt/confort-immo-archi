@@ -181,6 +181,7 @@ export async function generateContratPDF(contrat: any) {
       // Passage à la page suivante si besoin
       if (y > pageHeight - 20) {
         doc.addPage();
+        drawPageBorder(doc);
         y = 25;
 
         // **Ne pas répéter le titre sur les pages suivantes**
