@@ -51,10 +51,10 @@ function AppContent() {
         return <Paiements />;
       case 'depenses':
         return <Depenses />;
-      case 'loyers-impayes
+      case 'loyers-impayes':
         return <LoyersImpayes />;
       case 'bilan-entreprise':
-        return <BilanEntreprise />;
+        return <BilanEntrepise />;
       case 'rapports-immeubles':
         return <RapportsImmeubles />;
       case 'bilans-mensuels':
