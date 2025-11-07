@@ -9,6 +9,7 @@ import { Unites } from './pages/Unites';
 import { Locataires } from './pages/Locataires';
 import { Contrats } from './pages/Contrats';
 import { Paiements } from './pages/Paiements';
+import { Depenses } from './pages/Depenses';
 import { Comptabilite } from './pages/Comptabilite';
 import { BilanEntreprise } from './pages/BilanEntreprise';
 import { LoyersImpayes } from './pages/LoyersImpayes';
