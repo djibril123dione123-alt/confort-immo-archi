@@ -43,7 +43,6 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin', 'agent', 'comptable'] }, // [3]
         
         { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] }, // [3]
-        { id: 'commissions', label: 'Commissions', icon: TrendingUp, roles: ['admin', 'agent', 'comptable'] },
         // NOUVEL ÉLÉMENT CENTRALISÉ
         { 
             id: 'tableau-de-bord-financier', 
