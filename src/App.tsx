@@ -28,7 +28,7 @@ import { FiltresAvances } from './pages/FiltresAvances'; // [14]
 
 // --- Imports Financiers Optimisés ---
 // Suppression des imports obsolètes (Comptabilite, BilanEntreprise, RapportsImmeubles, BilansMensuels) [1]
-import { Commissions } from './pages/Commissions'; // NOUVEAU, basé sur la conversation
+//import { Commissions } from './pages/Commissions'; // NOUVEAU, basé sur la conversation
 // Composant Placeholder pour la centralisation, en l'absence du code source de ce nouveau TdB Global
 const TableauDeBordFinancierGlobal = () => (
     <div className="p-6">
