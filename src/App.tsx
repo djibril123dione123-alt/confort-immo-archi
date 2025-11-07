@@ -71,6 +71,8 @@ function AppContent() {
                 return <Paiements />; // [3]
             case 'depenses': // [3]
                 return <Depenses />; // [3]
+            case 'commissions':
+                return <Commissions />;
             case 'loyers-impayes': // [3]
                 return <LoyersImpayes />; // [3]
                 
