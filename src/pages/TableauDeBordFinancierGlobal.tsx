@@ -533,12 +533,12 @@ export function TableauDeBordFinancierGlobal() {
                 <div className="space-y-6">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-gray-700">Bilan de l'Entreprise (Mois de {new Date(selectedMonth).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })})</h2>
-                        <button 
+                      {/*<button 
                             onClick={exportBilanEntreprisePDF}
                             className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                         >
                             <Download className="w-5 h-5" /> Export PDF
-                        </button>
+                        </button>*/}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -603,12 +603,12 @@ export function TableauDeBordFinancierGlobal() {
                  <div className="space-y-6">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-gray-700">Comptabilité (Année {new Date().getFullYear()})</h2>
-                         <button 
+                      {/* <button 
                             onClick={exportComptabilitePDF}
                             className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                         >
                             <Download className="w-5 h-5" /> Export PDF
-                        </button>
+                        </button>*/}
                     </div>
 
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -682,12 +682,12 @@ export function TableauDeBordFinancierGlobal() {
                  <div className="space-y-6">
                     <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-semibold text-gray-700">Rapports par Immeuble (Mois de {new Date(selectedMonth).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })})</h2>
-                        <button 
+                      {/*<button 
                             onClick={exportRapportsImmeublesPDF}
                             className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                         >
                             <Download className="w-5 h-5" /> Export PDF
-                        </button>
+                        </button>*/}
                     </div>
 
                     {/* Filtre Bailleur [41] */}
