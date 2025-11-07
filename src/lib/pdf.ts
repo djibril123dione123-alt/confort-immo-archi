@@ -410,7 +410,7 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     for (const line of lines) {
       if (y > pageHeight - marginBottom) {
         doc.addPage();
-        drawPageBorder(doc);
+        drawPageBorder(doc);s
         y = 25; // nouvelle page, mais **pas de titre**
       }
 
