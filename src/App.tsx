@@ -1,31 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; // [1]
 
-// Imports de base et de navigation (tirés des sources [1, 2])
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { LoginForm } from './components/auth/LoginForm';
-import { Sidebar } from './components/layout/Sidebar';
-import { Dashboard } from './pages/Dashboard';
-import { Bailleurs } from './pages/Bailleurs';
-import { Immeubles } from './pages/Immeubles';
-import { Unites } from './pages/Unites';
-import { Locataires } from './pages/Locataires';
-import { Contrats } from './pages/Contrats';
-import { Paiements } from './pages/Paiements';
-import { Depenses } from './pages/Depenses';
-import { LoyersImpayes } from './pages/LoyersImpayes';
-import { FiltresAvances } from './pages/FiltresAvances';
+import { AuthProvider, useAuth } from './contexts/AuthContext'; // [1]
 
-// NOUVEL IMPORT CENTRALISÉ : Remplace Comptabilite, BilanEntreprise, RapportsImmeubles, BilansMensuels
+import { LoginForm } from './components/auth/LoginForm'; // [1]
+
+import { Sidebar } from './components/layout/Sidebar'; // [1]
+
+import { Dashboard } from './pages/Dashboard'; // [1]
+
+import { Bailleurs } from './pages/Bailleurs'; // [1]
+
+import { Immeubles } from './pages/Immeubles'; // [1]
+
+import { Unites } from './pages/Unites'; // [1]
+
+import { Locataires } from './pages/Locataires'; // [1]
+
+import { Contrats } from './pages/Contrats'; // [1]
+
+import { Paiements } from './pages/Paiements'; // [1]
+
+import { Depenses } from './pages/Depenses'; // [2]
+
+import { LoyersImpayes } from './pages/LoyersImpayes'; // [2]
+
+import { FiltresAvances } from './pages/FiltresAvances'; // [2]
+
+// NOUVEL IMPORT CENTRALISÉ : Remplace Comptabilite, BilanEntreprise, RapportsImmeubles, et BilansMensuels
 import { TableauDeBordFinancierGlobal } from './pages/TableauDeBordFinancierGlobal';
 
+// Les imports suivants ont été supprimés car ils sont consolidés dans TableauDeBordFinancierGlobal :
+// import { Comptabilite } from './pages/Comptabilite'; [2]
+// import { BilanEntreprise } from './pages/BilanEntreprise'; [2]
+// import { RapportsImmeubles } from './pages/RapportsImmeubles'; [2]
+// import { BilansMensuels } from './pages/BilansMensuels'; [2]
+
 function AppContent() {
-    const { user, loading } = useAuth(); // [1]
-    
-    // Modification: Utilisation d'une nouvelle clé pour le tableau de bord financier centralisé
-    const [currentPage, setCurrentPage] = useState('dashboard'); // [1]
+    const { user, loading } = useAuth(); // [2]
+    const [currentPage, setCurrentPage] = useState('dashboard'); // [2]
 
     if (loading) { // [3]
-        return (
+        return ( // [3]
             <div className="flex items-center justify-center min-h-screen">
                 Chargement...
             </div>
@@ -33,57 +48,61 @@ function AppContent() {
     }
 
     if (!user) { // [3]
-        return <LoginForm />;
+        return <LoginForm />; // [3]
     }
 
     const renderPage = () => { // [3]
-        switch (currentPage) {
-            case 'dashboard':
+        switch (currentPage) { // [3]
+            case 'dashboard': // [3]
                 return <Dashboard />; // [3]
-            case 'bailleurs':
+            case 'bailleurs': // [3]
                 return <Bailleurs />; // [3]
-            case 'immeubles':
+            case 'immeubles': // [3]
                 return <Immeubles />; // [3]
-            case 'unites':
+            case 'unites': // [3]
                 return <Unites />; // [3]
-            case 'locataires':
+            case 'locataires': // [3]
                 return <Locataires />; // [3]
-            case 'contrats':
+            case 'contrats': // [3]
                 return <Contrats />; // [3]
-            case 'paiements':
+            case 'paiements': // [3]
                 return <Paiements />; // [3]
-            case 'depenses':
+            case 'depenses': // [3]
                 return <Depenses />; // [3]
-            case 'loyers-impayes':
+            case 'loyers-impayes': // [3]
                 return <LoyersImpayes />; // [3]
                 
-            // NOUVEAU CAS CENTRALISÉ : Remplace les quatre anciens cas financiers 
+            // NOUVEAU CAS SYNCHRONISÉ AVEC SIDEBAR : Remplace les quatre anciens cas financiers
             case 'tableau-de-bord-financier': 
-                return <TableauDeBordFinancierGlobal />; 
+                return <TableauDeBordFinancierGlobal />;
 
-            // Les anciens cas 'bilan-entreprise', 'rapports-immeubles', 'bilans-mensuels', 'comptabilite' [3, 4] sont supprimés.
-                
-            case 'filtres-avances':
+            // Les anciens cas suivants sont retirés pour éviter les erreurs :
+            // case 'bilan-entreprise': [3]
+            // case 'rapports-immeubles': [3]
+            // case 'bilans-mensuels': [3]
+            // case 'comptabilite': [4]
+
+            case 'filtres-avances': // [3]
                 return <FiltresAvances />; // [3]
 
-            default:
+            default: // [4]
                 return <Dashboard />; // [4]
         }
     };
 
     return (
         <div className="flex min-h-screen">
-            {/* Supposons que la Sidebar gère la navigation et met à jour currentPage */}
-            <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+            {/* Synchronisation : La fonction setCurrentPage est passée sous le nom onNavigate [5] */}
+            <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} /> 
             <main className="flex-1 overflow-y-auto bg-gray-50"> 
-                {renderPage()}
+                {renderPage()} {/* [4] */}
             </main>
         </div>
     );
 }
 
-function App() {
-    return (
+function App() { // [4]
+    return ( // [4]
         <AuthProvider>
             <AppContent />
         </AuthProvider>
