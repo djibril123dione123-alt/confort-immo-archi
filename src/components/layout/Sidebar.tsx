@@ -42,7 +42,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         
         // Finances Transactionnelles
         { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [1]
-        { id: 'commissions', label: 'Commissions', icon: TrendingUp, roles: ['admin', 'agent', 'comptable'] }, // NOUVEAU [1]
+       // { id: 'commissions', label: 'Commissions', icon: TrendingUp, roles: ['admin', 'agent', 'comptable'] }, // NOUVEAU [1]
         { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin', 'agent', 'comptable'] }, // [2]
         { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] }, // [2]
 
