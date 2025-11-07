@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+{/*import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Building2, TrendingUp, TrendingDown, DollarSign, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -198,7 +198,7 @@ export function RapportsImmeubles() {
         >
           <Download className="w-5 h-5" />
           Export PDF
-        </button>*/}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
