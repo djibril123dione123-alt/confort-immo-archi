@@ -49,7 +49,9 @@ function AppContent() {
         return <Contrats />;
       case 'paiements':
         return <Paiements />;
-      case 'loyers-impayes':
+      case 'depenses':
+        return <Depenses />;
+      case 'loyers-impayes
         return <LoyersImpayes />;
       case 'bilan-entreprise':
         return <BilanEntreprise />;
