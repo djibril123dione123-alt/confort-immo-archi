@@ -3,65 +3,66 @@ import React from 'react';
 import {
     LayoutDashboard,
     Building2,
+    Home, // Reste dans les imports de la source [1]
     Users,
     FileText,
     CreditCard,
-    Calculator, // Utilisé pour le nouveau TdB Financier [3]
+    Calculator, // Utilisé pour le nouveau TdB Financier [4]
+    Settings, // Reste dans les imports de la source [1]
     LogOut,
     UserCircle,
     DoorOpen,
     AlertCircle,
     BarChart3,
+    FileBarChart, // Reste dans les imports de la source [1]
     Filter,
-    // TrendingDown (Icone des dépenses, présent dans les imports Lucide de la source [3])
-} from 'lucide-react'; //
-import { TrendingDown } from 'lucide-react'; // Ajouté explicitement pour Dépenses, bien que l'importation soit présente dans [3]
+    TrendingDown, // Utilisé pour Dépenses [3]
+} from 'lucide-react'; // [1]
 
-import { useAuth } from '../../contexts/AuthContext'; //
+import { useAuth } from '../../contexts/AuthContext'; // [1]
 
 interface SidebarProps {
     currentPage: string;
     onNavigate: (page: string) => void;
-}
+} // [1]
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
-    const { profile, signOut } = useAuth(); //
+    const { profile, signOut } = useAuth(); // [1]
 
-    // Liste des éléments de menu optimisée
+    // Liste des éléments de menu optimisée pour le nouveau TdB Financier
     const menuItems = [
-        { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [3]
+        { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [1]
         
-        { id: 'bailleurs', label: 'Bailleurs', icon: UserCircle, roles: ['admin', 'agent'] }, // [4]
-        { id: 'immeubles', label: 'Immeubles', icon: Building2, roles: ['admin', 'agent', 'bailleur'] }, // [4]
-        { id: 'unites', label: 'Produits', icon: DoorOpen, roles: ['admin', 'agent', 'bailleur'] }, // [4]
-        { id: 'locataires', label: 'Locataires', icon: Users, roles: ['admin', 'agent', 'comptable'] }, // [4]
-        { id: 'contrats', label: 'Contrats', icon: FileText, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [4]
-        { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [4]
+        { id: 'bailleurs', label: 'Bailleurs', icon: UserCircle, roles: ['admin', 'agent'] }, // [2]
+        { id: 'immeubles', label: 'Immeubles', icon: Building2, roles: ['admin', 'agent', 'bailleur'] }, // [2]
+        { id: 'unites', label: 'Produits', icon: DoorOpen, roles: ['admin', 'agent', 'bailleur'] }, // [2]
+        { id: 'locataires', label: 'Locataires', icon: Users, roles: ['admin', 'agent', 'comptable'] }, // [2]
+        { id: 'contrats', label: 'Contrats', icon: FileText, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [2]
+        { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [2]
 
-        { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin', 'agent', 'comptable'] }, // [1]
-        { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] }, // [1]
+        { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin', 'agent', 'comptable'] }, // [3] (Utilisant TrendingDown comme icône des dépenses)
+        { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] }, // [3]
         
-        // NOUVEL ÉLÉMENT CENTRALISÉ (Fusionne Rapports immeubles, Bilans mensuels, Bilan entreprise, Comptabilité) [1, 2]
+        // REMPLACEMENT CENTRALISÉ (Fusion des 4 anciens rapports financiers)
+        // Les IDs 'rapports-immeubles', 'bilans-mensuels', 'bilan-entreprise', 'comptabilite' sont retirés [3, 4].
         { 
             id: 'tableau-de-bord-financier', 
             label: 'Rapports Financiers', 
-            icon: Calculator, // Utilisé dans l'ancienne Comptabilité [2]
-            roles: ['admin', 'agent', 'comptable', 'bailleur'] // Rôles fusionnés
+            icon: Calculator, // Icône de l'ancienne Comptabilité [4]
+            roles: ['admin', 'agent', 'comptable', 'bailleur'] // Rôles étendus
         }, 
         
-        { id: 'filtres-avances', label: 'Filtres avancés', icon: Filter, roles: ['admin', 'agent', 'comptable'] }, // [1]
-        
-        // Les éléments 'rapports-immeubles', 'bilans-mensuels', 'bilan-entreprise', et 'comptabilite' ont été supprimés.
-    ];
+        { id: 'filtres-avances', label: 'Filtres avancés', icon: Filter, roles: ['admin', 'agent', 'comptable'] }, // [3]
+    ]; // [4]
 
     const filteredItems = menuItems.filter(item =>
-        profile && item.roles.includes(profile.role) //
+        profile && item.roles.includes(profile.role) // [4]
     );
 
-    // Rendu de la barre latérale [5]
+    // Rendu de la barre latérale
     return (
         <div className="w-64 bg-slate-900 text-white flex flex-col p-5 shadow-lg">
-            {/* Header / Logo (tiré des fragments) */}
+            {/* Header / Logo (Extrait des fragments de rendu de la source [4]) */}
             <div className="mb-8 text-2xl font-bold text-blue-400">
                 Confort Immo Archi
             </div>
@@ -77,7 +78,8 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
                     return (
                         <div key={item.id}>
                             <button
-                                onClick={() => onNavigate(item.id)}
+                                // Appel à onNavigate pour changer l'état 'currentPage' dans App.tsx
+                                onClick={() => onNavigate(item.id)} 
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
                                     currentPage === item.id
                                     ? 'bg-blue-600 text-white' // [5]
