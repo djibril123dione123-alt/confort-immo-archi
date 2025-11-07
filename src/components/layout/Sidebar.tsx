@@ -48,7 +48,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             id: 'tableau-de-bord-financier', 
             label: 'Rapports Financiers', 
             icon: Calculator, 
-            roles: ['admin',] 
+            roles: ['admin'] 
         }, 
         
         { id: 'filtres-avances', label: 'Filtres avancés', icon: Filter, roles: ['admin', 'agent', 'comptable'] }, // [3]
