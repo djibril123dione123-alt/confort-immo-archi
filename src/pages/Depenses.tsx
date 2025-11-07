@@ -24,7 +24,7 @@ export function Depenses() {
     immeuble_id: '',
   });
 
-  const categories = ['maintenance', 'reparation', 'nettoyage', 'securite', 'administration', 'autre'];
+  const categories = ['🌐 Internet', '⚡ Électricité', '💧 Eau', '👷 Salaires', '🚌 Prime de transport','📱 Crédit téléphonique', '📦 Autres'];
 
   useEffect(() => {
     loadData();
