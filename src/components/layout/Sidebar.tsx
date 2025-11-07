@@ -73,9 +73,6 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             
             {/* Menu de navigation */}
             <nav className="flex-1 space-y-2">
-                <p className="text-sm font-semibold uppercase text-slate-500 mb-3">
-                    Gestion immobilière {/* [4] */}
-                </p>
                 {filteredItems.map((item) => {
                     const Icon = item.icon;
 
