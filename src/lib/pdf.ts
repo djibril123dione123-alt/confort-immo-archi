@@ -391,6 +391,8 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     const titleFontSize = 16;
     const bodyFontSize = 11;
     const lineHeight = 7;
+    drawPageBorder(doc); // bordure sur la première page
+
 
     // TITRE UNIQUEMENT SUR LA PREMIÈRE PAGE
     doc.setFont(undefined, 'bold');
