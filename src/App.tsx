@@ -22,6 +22,8 @@ import { Paiements } from './pages/Paiements'; // [1]
 
 import { Depenses } from './pages/Depenses'; // [2]
 
+import { Commissions } from './pages/Commissions';
+
 import { LoyersImpayes } from './pages/LoyersImpayes'; // [2]
 
 import { FiltresAvances } from './pages/FiltresAvances'; // [2]
