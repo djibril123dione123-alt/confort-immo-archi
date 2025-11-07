@@ -31,7 +31,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
     // Liste des éléments de menu optimisée : Fusion des rapports financiers en 'tableau-de-bord-financier'
     const menuItems = [
-        { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [1]
+        { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['admin'] }, // [1]
         
         { id: 'bailleurs', label: 'Bailleurs', icon: UserCircle, roles: ['admin', 'agent'] }, // [2]
         { id: 'immeubles', label: 'Immeubles', icon: Building2, roles: ['admin', 'agent', 'bailleur'] }, // [2]
@@ -39,10 +39,10 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         { id: 'locataires', label: 'Locataires', icon: Users, roles: ['admin', 'agent', 'comptable'] }, // [2]
         { id: 'contrats', label: 'Contrats', icon: FileText, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [2]
         { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [2]
-        
+
         { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin', 'agent', 'comptable'] }, // [3]
-        
         { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] }, // [3]
+        
         // NOUVEL ÉLÉMENT CENTRALISÉ
         { 
             id: 'tableau-de-bord-financier', 
