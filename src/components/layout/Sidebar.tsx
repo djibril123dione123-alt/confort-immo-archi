@@ -1,113 +1,112 @@
-import React from 'react';
+import React, { useState } from 'react'; // [1]
 
-import {
-    LayoutDashboard,
-    Building2,
-    Home, // Reste dans les imports de la source [1]
-    Users,
-    FileText,
-    CreditCard,
-    Calculator, // Utilisé pour le nouveau TdB Financier [4]
-    Settings, // Reste dans les imports de la source [1]
-    LogOut,
-    UserCircle,
-    DoorOpen,
-    AlertCircle,
-    BarChart3,
-    FileBarChart, // Reste dans les imports de la source [1]
-    Filter,
-    TrendingDown, // Utilisé pour Dépenses [3]
-} from 'lucide-react'; // [1]
+import { AuthProvider, useAuth } from './contexts/AuthContext'; // [1]
 
-import { useAuth } from '../../contexts/AuthContext'; // [1]
+import { LoginForm } from './components/auth/LoginForm'; // [1]
 
-interface SidebarProps {
-    currentPage: string;
-    onNavigate: (page: string) => void;
-} // [1]
+import { Sidebar } from './components/layout/Sidebar'; // [1]
 
-export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
-    const { profile, signOut } = useAuth(); // [1]
+import { Dashboard } from './pages/Dashboard'; // [1]
 
-    // Liste des éléments de menu optimisée pour le nouveau TdB Financier
-    const menuItems = [
-        { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [1]
-        
-        { id: 'bailleurs', label: 'Bailleurs', icon: UserCircle, roles: ['admin', 'agent'] }, // [2]
-        { id: 'immeubles', label: 'Immeubles', icon: Building2, roles: ['admin', 'agent', 'bailleur'] }, // [2]
-        { id: 'unites', label: 'Produits', icon: DoorOpen, roles: ['admin', 'agent', 'bailleur'] }, // [2]
-        { id: 'locataires', label: 'Locataires', icon: Users, roles: ['admin', 'agent', 'comptable'] }, // [2]
-        { id: 'contrats', label: 'Contrats', icon: FileText, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [2]
-        { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] }, // [2]
+import { Bailleurs } from './pages/Bailleurs'; // [1]
 
-        { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin', 'agent', 'comptable'] }, // [3] (Utilisant TrendingDown comme icône des dépenses)
-        { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] }, // [3]
-        
-        // REMPLACEMENT CENTRALISÉ (Fusion des 4 anciens rapports financiers)
-        // Les IDs 'rapports-immeubles', 'bilans-mensuels', 'bilan-entreprise', 'comptabilite' sont retirés [3, 4].
-        { 
-            id: 'tableau-de-bord-financier', 
-            label: 'Rapports Financiers', 
-            icon: Calculator, // Icône de l'ancienne Comptabilité [4]
-            roles: ['admin', 'agent', 'comptable', 'bailleur'] // Rôles étendus
-        }, 
-        
-        { id: 'filtres-avances', label: 'Filtres avancés', icon: Filter, roles: ['admin', 'agent', 'comptable'] }, // [3]
-    ]; // [4]
+import { Immeubles } from './pages/Immeubles'; // [1]
 
-    const filteredItems = menuItems.filter(item =>
-        profile && item.roles.includes(profile.role) // [4]
-    );
+import { Unites } from './pages/Unites'; // [1]
 
-    // Rendu de la barre latérale
+import { Locataires } from './pages/Locataires'; // [1]
+
+import { Contrats } from './pages/Contrats'; // [1]
+
+import { Paiements } from './pages/Paiements'; // [1]
+
+import { Depenses } from './pages/Depenses'; // [2]
+
+import { LoyersImpayes } from './pages/LoyersImpayes'; // [2]
+
+import { FiltresAvances } from './pages/FiltresAvances'; // [2]
+
+// NOUVEL IMPORT CENTRALISÉ : Remplace Comptabilite, BilanEntreprise, RapportsImmeubles, et BilansMensuels
+import { TableauDeBordFinancierGlobal } from './pages/TableauDeBordFinancierGlobal';
+
+// Les imports suivants ont été supprimés car ils sont consolidés dans TableauDeBordFinancierGlobal :
+// import { Comptabilite } from './pages/Comptabilite'; [2]
+// import { BilanEntreprise } from './pages/BilanEntreprise'; [2]
+// import { RapportsImmeubles } from './pages/RapportsImmeubles'; [2]
+// import { BilansMensuels } from './pages/BilansMensuels'; [2]
+
+function AppContent() {
+    const { user, loading } = useAuth(); // [2]
+    const [currentPage, setCurrentPage] = useState('dashboard'); // [2]
+
+    if (loading) { // [3]
+        return ( // [3]
+            <div className="flex items-center justify-center min-h-screen">
+                Chargement...
+            </div>
+        );
+    }
+
+    if (!user) { // [3]
+        return <LoginForm />; // [3]
+    }
+
+    const renderPage = () => { // [3]
+        switch (currentPage) { // [3]
+            case 'dashboard': // [3]
+                return <Dashboard />; // [3]
+            case 'bailleurs': // [3]
+                return <Bailleurs />; // [3]
+            case 'immeubles': // [3]
+                return <Immeubles />; // [3]
+            case 'unites': // [3]
+                return <Unites />; // [3]
+            case 'locataires': // [3]
+                return <Locataires />; // [3]
+            case 'contrats': // [3]
+                return <Contrats />; // [3]
+            case 'paiements': // [3]
+                return <Paiements />; // [3]
+            case 'depenses': // [3]
+                return <Depenses />; // [3]
+            case 'loyers-impayes': // [3]
+                return <LoyersImpayes />; // [3]
+                
+            // NOUVEAU CAS SYNCHRONISÉ AVEC SIDEBAR : Remplace les quatre anciens cas financiers
+            case 'tableau-de-bord-financier': 
+                return <TableauDeBordFinancierGlobal />;
+
+            // Les anciens cas suivants sont retirés pour éviter les erreurs :
+            // case 'bilan-entreprise': [3]
+            // case 'rapports-immeubles': [3]
+            // case 'bilans-mensuels': [3]
+            // case 'comptabilite': [4]
+
+            case 'filtres-avances': // [3]
+                return <FiltresAvances />; // [3]
+
+            default: // [4]
+                return <Dashboard />; // [4]
+        }
+    };
+
     return (
-        <div className="w-64 bg-slate-900 text-white flex flex-col p-5 shadow-lg">
-            {/* Header / Logo (Extrait des fragments de rendu de la source [4]) */}
-            <div className="mb-8 text-2xl font-bold text-blue-400">
-                Confort Immo Archi
-            </div>
-            
-            {/* Menu de navigation */}
-            <nav className="flex-1 space-y-2">
-                <p className="text-sm font-semibold uppercase text-slate-500 mb-3">
-                    Gestion immobilière
-                </p>
-                {filteredItems.map((item) => {
-                    const Icon = item.icon;
-
-                    return (
-                        <div key={item.id}>
-                            <button
-                                // Appel à onNavigate pour changer l'état 'currentPage' dans App.tsx
-                                onClick={() => onNavigate(item.id)} 
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                                    currentPage === item.id
-                                    ? 'bg-blue-600 text-white' // [5]
-                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white' // [5]
-                                }`}
-                            >
-                                <Icon className="w-5 h-5" />
-                                {item.label}
-                            </button>
-                        </div>
-                    );
-                })}
-            </nav>
-
-            {/* Pied de page / Profil / Déconnexion */}
-            <div className="pt-4 border-t border-slate-700">
-                <div className="p-3 bg-slate-800 rounded-lg mb-4">
-                    <p className="font-semibold">{profile?.prenom} {profile?.nom}</p>
-                    <p className="text-sm text-slate-400">{profile?.role}</p>
-                </div>
-                <button
-                    onClick={() => signOut()}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition"
-                >
-                    <LogOut className="w-5 h-5" />
-                    Déconnexion
-                </button>
-            </div>
+        <div className="flex min-h-screen">
+            {/* Synchronisation : La fonction setCurrentPage est passée sous le nom onNavigate [5] */}
+            <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} /> 
+            <main className="flex-1 overflow-y-auto bg-gray-50"> 
+                {renderPage()} {/* [4] */}
+            </main>
         </div>
     );
 }
+
+function App() { // [4]
+    return ( // [4]
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+    );
+} // [4]
+
+export default App; // [4]
