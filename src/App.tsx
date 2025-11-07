@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+
+// Imports de base et de navigation (tirés des sources [1, 2])
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { Sidebar } from './components/layout/Sidebar';
@@ -10,80 +12,82 @@ import { Locataires } from './pages/Locataires';
 import { Contrats } from './pages/Contrats';
 import { Paiements } from './pages/Paiements';
 import { Depenses } from './pages/Depenses';
-import { Comptabilite } from './pages/Comptabilite';
-import { BilanEntreprise } from './pages/BilanEntreprise';
 import { LoyersImpayes } from './pages/LoyersImpayes';
-import { RapportsImmeubles } from './pages/RapportsImmeubles';
-import { BilansMensuels } from './pages/BilansMensuels';
 import { FiltresAvances } from './pages/FiltresAvances';
 
+// NOUVEL IMPORT CENTRALISÉ : Remplace Comptabilite, BilanEntreprise, RapportsImmeubles, BilansMensuels
+import { TableauDeBordFinancierGlobal } from './pages/TableauDeBordFinancierGlobal';
+
 function AppContent() {
-  const { user, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState('dashboard');
+    const { user, loading } = useAuth(); // [1]
+    
+    // Modification: Utilisation d'une nouvelle clé pour le tableau de bord financier centralisé
+    const [currentPage, setCurrentPage] = useState('dashboard'); // [1]
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-lg text-slate-600">Chargement...</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <LoginForm />;
-  }
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'bailleurs':
-        return <Bailleurs />;
-      case 'immeubles':
-        return <Immeubles />;
-      case 'unites':
-        return <Unites />;
-      case 'locataires':
-        return <Locataires />;
-      case 'contrats':
-        return <Contrats />;
-      case 'paiements':
-        return <Paiements />;
-      case 'depenses':
-        return <Depenses />;
-      case 'loyers-impayes':
-        return <LoyersImpayes />;
-      case 'bilan-entreprise':
-        return <BilanEntrepise />;
-      case 'rapports-immeubles':
-        return <RapportsImmeubles />;
-      case 'bilans-mensuels':
-        return <BilansMensuels />;
-      case 'filtres-avances':
-        return <FiltresAvances />;
-      case 'comptabilite':
-        return <Comptabilite />;
-      default:
-        return <Dashboard />;
+    if (loading) { // [3]
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                Chargement...
+            </div>
+        );
     }
-  };
 
-  return (
-    <div className="flex h-screen bg-slate-50">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-      <main className="flex-1 overflow-y-auto">
-        {renderPage()}
-      </main>
-    </div>
-  );
+    if (!user) { // [3]
+        return <LoginForm />;
+    }
+
+    const renderPage = () => { // [3]
+        switch (currentPage) {
+            case 'dashboard':
+                return <Dashboard />; // [3]
+            case 'bailleurs':
+                return <Bailleurs />; // [3]
+            case 'immeubles':
+                return <Immeubles />; // [3]
+            case 'unites':
+                return <Unites />; // [3]
+            case 'locataires':
+                return <Locataires />; // [3]
+            case 'contrats':
+                return <Contrats />; // [3]
+            case 'paiements':
+                return <Paiements />; // [3]
+            case 'depenses':
+                return <Depenses />; // [3]
+            case 'loyers-impayes':
+                return <LoyersImpayes />; // [3]
+                
+            // NOUVEAU CAS CENTRALISÉ : Remplace les quatre anciens cas financiers 
+            case 'tableau-de-bord-financier': 
+                return <TableauDeBordFinancierGlobal />; 
+
+            // Les anciens cas 'bilan-entreprise', 'rapports-immeubles', 'bilans-mensuels', 'comptabilite' [3, 4] sont supprimés.
+                
+            case 'filtres-avances':
+                return <FiltresAvances />; // [3]
+
+            default:
+                return <Dashboard />; // [4]
+        }
+    };
+
+    return (
+        <div className="flex min-h-screen">
+            {/* Supposons que la Sidebar gère la navigation et met à jour currentPage */}
+            <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+            <main className="flex-1 overflow-y-auto bg-gray-50"> 
+                {renderPage()}
+            </main>
+        </div>
+    );
 }
 
 function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-}
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+    );
+} // [4]
 
-export default App;
+export default App; // [4]
