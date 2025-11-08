@@ -1,24 +1,92 @@
 {
   "compilerOptions": {
+    // ==================== TARGET & MODULE ====================
     "target": "ES2020",
-    "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    
+    // ==================== JSX ====================
     "jsx": "react-jsx",
-
-    /* Linting */
+    "jsxImportSource": "react",
+    
+    // ==================== COMPILATION ====================
+    "useDefineForClassFields": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    
+    // ==================== TYPE CHECKING (STRICT MODE) ====================
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": true,
+    
+    // ==================== PATH ALIASES ====================
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@pages/*": ["src/pages/*"],
+      "@contexts/*": ["src/contexts/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@utils/*": ["src/utils/*"],
+      "@types/*": ["src/types/*"],
+      "@services/*": ["src/services/*"],
+      "@lib/*": ["src/lib/*"],
+      "@assets/*": ["src/assets/*"]
+    },
+    
+    // ==================== DEBUGGING & SOURCE MAPS ====================
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    
+    // ==================== ADVANCED OPTIONS ====================
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "composite": false,
+    
+    // ==================== INTEROP CONSTRAINTS ====================
+    "verbatimModuleSyntax": false
   },
-  "include": ["src"]
+  
+  // ==================== INCLUSION ====================
+  "include": [
+    "src/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "vite.config.ts"
+  ],
+  
+  // ==================== EXCLUSION ====================
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx"
+  ],
+  
+  // ==================== REFERENCES (pour monorepos) ====================
+  "references": []
 }
