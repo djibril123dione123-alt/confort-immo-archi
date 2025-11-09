@@ -15,26 +15,24 @@ export function Depenses() {
   const [editingDepense, setEditingDepense] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-const [formData, setFormData] = useState({
-  montant: '',
-  date_depense: new Date().toISOString().split('T')[0],
-  categorie: '' as string, // aucune catégorie par défaut
-  description: '',
-  beneficiaire: '',
-  immeuble_id: '',
-});
+  const categories = [
+    '🌐 Internet',
+    '⚡ Électricité',
+    '💧 Eau',
+    '👷 Salaires',
+    '🚌 Prime de transport',
+    '📱 Crédit téléphonique',
+    '📦 Autres',
+  ];
 
-// Liste des catégories sans "maintenance"
-const categories = [
-  '🌐 Internet',
-  '⚡ Électricité',
-  '💧 Eau',
-  '👷 Salaires',
-  '🚌 Prime de transport',
-  '📱 Crédit téléphonique',
-  '📦 Autres',
-];
-
+  const [formData, setFormData] = useState({
+    montant: '',
+    date_depense: new Date().toISOString().split('T')[0],
+    categorie: categories[0], // valeur par défaut valide
+    description: '',
+    beneficiaire: '',
+    immeuble_id: '',
+  });
 
   useEffect(() => {
     loadData();
@@ -91,7 +89,7 @@ const categories = [
     setFormData({
       montant: depense.montant.toString(),
       date_depense: depense.date_depense,
-      categorie: depense.categorie,
+      categorie: depense.categorie || categories[0],
       description: depense.description,
       beneficiaire: depense.beneficiaire,
       immeuble_id: depense.immeuble_id || '',
@@ -115,7 +113,7 @@ const categories = [
     setFormData({
       montant: '',
       date_depense: new Date().toISOString().split('T')[0],
-      categorie: 'maintenance',
+      categorie: categories[0],
       description: '',
       beneficiaire: '',
       immeuble_id: '',
@@ -134,7 +132,12 @@ const categories = [
     { key: 'immeuble', label: 'Immeuble', render: (d: any) => d.immeubles?.nom || '-' },
   ];
 
-  if (loading) return <div className="flex items-center justify-center h-full"><div>Chargement...</div></div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div>Chargement...</div>
+      </div>
+    );
 
   return (
     <div className="p-8">
@@ -145,7 +148,7 @@ const categories = [
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
           <Plus className="w-5 h-5" />
           Nouvelle dépense
@@ -198,11 +201,11 @@ const categories = [
             <select
               required
               value={formData.categorie}
-              onChange={(e) => setFormData({ ...formData, categorie: e.target.value as any })}
+              onChange={(e) => setFormData({ ...formData, categorie: e.target.value })}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               {categories.map((c) => (
-                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
@@ -242,10 +245,10 @@ const categories = [
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={closeModal} className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50">
+            <button type="button" onClick={closeModal} className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition">
               Annuler
             </button>
-            <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
               {editingDepense ? 'Modifier' : 'Créer'}
             </button>
           </div>
