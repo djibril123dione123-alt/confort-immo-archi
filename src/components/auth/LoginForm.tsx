@@ -33,9 +33,6 @@ export function LoginForm() {
             className="h-20 w-auto object-contain"
           />
         </div>
-        <p className="text-center text-slate-600 mb-8">
-          Gestion immobilière professionnelle
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
