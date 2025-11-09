@@ -73,7 +73,7 @@ function AppContent() {
             />
 
             {/* Contenu principal défilable indépendamment */}
-            <main className="flex-1 ml-10 overflow-y-auto bg-gray-50">
+            <main className="flex-1 ml-2 overflow-y-auto bg-gray-50">
                 {renderPage()}
             </main>
         </div>
