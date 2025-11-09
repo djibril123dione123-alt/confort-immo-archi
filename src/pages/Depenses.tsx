@@ -15,16 +15,26 @@ export function Depenses() {
   const [editingDepense, setEditingDepense] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [formData, setFormData] = useState({
-    montant: '',
-    date_depense: new Date().toISOString().split('T')[0],
-    categorie: 'maintenance' as const,
-    description: '',
-    beneficiaire: '',
-    immeuble_id: '',
-  });
+const [formData, setFormData] = useState({
+  montant: '',
+  date_depense: new Date().toISOString().split('T')[0],
+  categorie: '' as string, // aucune catégorie par défaut
+  description: '',
+  beneficiaire: '',
+  immeuble_id: '',
+});
 
-  const categories = ['🌐 Internet', '⚡ Électricité', '💧 Eau', '👷 Salaires', '🚌 Prime de transport','📱 Crédit téléphonique', '📦 Autres'];
+// Liste des catégories sans "maintenance"
+const categories = [
+  '🌐 Internet',
+  '⚡ Électricité',
+  '💧 Eau',
+  '👷 Salaires',
+  '🚌 Prime de transport',
+  '📱 Crédit téléphonique',
+  '📦 Autres',
+];
+
 
   useEffect(() => {
     loadData();
