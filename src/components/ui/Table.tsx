@@ -13,49 +13,72 @@ interface TableProps<T> {
   onDelete?: (item: T) => void;
 }
 
-export function Table<T extends { id: string }>({ columns, data, onEdit, onDelete }: TableProps<T>) {
+export function Table<T extends { id: string }>({
+  columns,
+  data,
+  onEdit,
+  onDelete,
+}: TableProps<T>) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-slate-200">
+    <div className="overflow-x-auto shadow-md rounded-xl border border-gray-100 bg-white">
+      <table className="w-full border-collapse">
+        {/* --- En-têtes --- */}
+        <thead
+          className="bg-gradient-to-r from-[#F58220]/10 to-[#C0392B]/10 border-b"
+          style={{ borderBottomColor: '#F58220' }}
+        >
+          <tr>
             {columns.map((column) => (
               <th
                 key={column.key}
-                className="text-left py-4 px-4 text-sm font-semibold text-slate-700"
+                className="text-left py-4 px-5 text-sm font-semibold text-[#3A3A3A] uppercase tracking-wide"
               >
                 {column.label}
               </th>
             ))}
             {(onEdit || onDelete) && (
-              <th className="text-right py-4 px-4 text-sm font-semibold text-slate-700">
+              <th className="text-right py-4 px-5 text-sm font-semibold text-[#3A3A3A] uppercase tracking-wide">
                 Actions
               </th>
             )}
           </tr>
         </thead>
+
+        {/* --- Corps du tableau --- */}
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length + 1} className="text-center py-8 text-slate-500">
+              <td
+                colSpan={columns.length + 1}
+                className="text-center py-10 text-slate-500"
+              >
                 Aucune donnée disponible
               </td>
             </tr>
           ) : (
             data.map((item) => (
-              <tr key={item.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
+              <tr
+                key={item.id}
+                className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-[#FFF7F0] hover:to-[#FFEFEA] transition"
+              >
                 {columns.map((column) => (
-                  <td key={column.key} className="py-4 px-4 text-sm text-slate-700">
+                  <td key={column.key} className="py-4 px-5 text-sm text-slate-700">
                     {column.render ? column.render(item) : (item as any)[column.key]}
                   </td>
                 ))}
+
+                {/* --- Boutons Actions --- */}
                 {(onEdit || onDelete) && (
-                  <td className="py-4 px-4 text-right">
+                  <td className="py-4 px-5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       {onEdit && (
                         <button
                           onClick={() => onEdit(item)}
-                          className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                          className="px-3 py-1.5 text-sm font-medium text-white rounded-lg shadow-sm transition-transform hover:scale-105"
+                          style={{
+                            background:
+                              'linear-gradient(135deg, #F58220 0%, #FF914D 100%)',
+                          }}
                         >
                           Modifier
                         </button>
@@ -63,7 +86,11 @@ export function Table<T extends { id: string }>({ columns, data, onEdit, onDelet
                       {onDelete && (
                         <button
                           onClick={() => onDelete(item)}
-                          className="px-3 py-1.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                          className="px-3 py-1.5 text-sm font-medium text-white rounded-lg shadow-sm transition-transform hover:scale-105"
+                          style={{
+                            background:
+                              'linear-gradient(135deg, #C0392B 0%, #E74C3C 100%)',
+                          }}
                         >
                           Supprimer
                         </button>
