@@ -36,7 +36,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'locataires', label: 'Locataires', icon: Users, roles: ['admin', 'agent', 'comptable'] },
     { id: 'contrats', label: 'Contrats', icon: FileText, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
     { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
-    { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin', 'agent', 'comptable'] },
+    { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin'] },
     { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] },
     { id: 'tableau-de-bord-financier', label: 'Rapports Financiers', icon: Calculator, roles: ['admin'] },
     { id: 'filtres-avances', label: 'Filtres avancés', icon: Filter, roles: ['admin', 'agent', 'comptable'] },
