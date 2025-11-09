@@ -149,7 +149,7 @@ export function Bailleurs() {
     { key: 'mandat', label: 'Mandat', render: (b: Bailleur) => (
       <button
         onClick={() => generateMandatBailleurPDF(b)}
-        className="px-4 py-2 text-sm font-medium text-white rounded-lg shadow-md 
+        className="px-1 py-1 text-sm font-medium text-white rounded-lg shadow-md 
              transition-all duration-300 transform hover:scale-105"
          style={{
     background: 'linear-gradient(135deg, #F58220 0%, #C0392B 100%)',
