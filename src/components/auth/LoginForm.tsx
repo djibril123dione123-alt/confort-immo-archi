@@ -30,7 +30,7 @@ export function LoginForm() {
           <img
             src="/templates/Logo confort immo archi neutre.png"
             alt="Logo Confort Immo Archi"
-            className="h-25 w-auto object-contain"
+            className="h-23 w-auto object-contain"
           />
         </div>
         <p className="text-center text-slate-600 mb-8">
