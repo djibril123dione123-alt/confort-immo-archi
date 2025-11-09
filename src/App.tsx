@@ -1,3 +1,21 @@
+import React, { useState } from 'react';
+
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LoginForm } from './components/auth/LoginForm';
+import { Sidebar } from './components/layout/Sidebar';
+import { Dashboard } from './pages/Dashboard';
+import { Bailleurs } from './pages/Bailleurs';
+import { Immeubles } from './pages/Immeubles';
+import { Unites } from './pages/Unites';
+import { Locataires } from './pages/Locataires';
+import { Contrats } from './pages/Contrats';
+import { Paiements } from './pages/Paiements';
+import { Depenses } from './pages/Depenses';
+import { Commissions } from './pages/Commissions';
+import { LoyersImpayes } from './pages/LoyersImpayes';
+import { FiltresAvances } from './pages/FiltresAvances';
+import { TableauDeBordFinancierGlobal } from './pages/TableauDeBordFinancierGlobal';
+
 function AppContent() {
     const { user, loading } = useAuth();
     const [currentPage, setCurrentPage] = useState('dashboard');
@@ -61,3 +79,13 @@ function AppContent() {
         </div>
     );
 }
+
+function App() {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+    );
+}
+
+export default App;
