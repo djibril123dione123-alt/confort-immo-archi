@@ -33,7 +33,7 @@ export function LoginForm() {
           <div className="absolute inset-0 opacity-20 blur-xl rounded-full" 
                style={{ background: 'linear-gradient(135deg, #F58220 0%, #C0392B 100%)' }} />
           <div className="relative p-4 rounded-xl shadow-lg" 
-               style={{ background: 'linear-gradient(135deg, #F58220 0%, #C0392B 100%)' }}>
+               style={{  backgroundColor: 'white' }}>
             <img
               src="/templates/Logo confort immo archi neutre.png"
               alt="Logo Confort Immo Archi"
