@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogIn } from 'lucide-react';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -26,10 +25,13 @@ export function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        {/* --- Logo centré --- */}
         <div className="flex items-center justify-center mb-8">
-          <div className="bg-blue-600 p-3 rounded-xl">
-            <LogIn className="w-8 h-8 text-white" />
-          </div>
+          <img
+            src="/templates/Logo confort immo archi neutre.png"
+            alt="Logo Confort Immo Archi"
+            className="h-20 w-auto object-contain"
+          />
         </div>
 
         <h1 className="text-3xl font-bold text-center text-slate-900 mb-2">
@@ -56,7 +58,7 @@ export function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
               placeholder="votre@email.com"
             />
           </div>
@@ -71,7 +73,7 @@ export function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
               placeholder="••••••••"
             />
           </div>
@@ -79,14 +81,14 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-[#F58220] to-[#C0392B] hover:opacity-90 text-white font-medium py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-600">
-          <p>Connectez vous a votre Compte </p>
+          <p>Connectez-vous à votre compte</p>
         </div>
       </div>
     </div>
