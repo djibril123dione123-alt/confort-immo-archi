@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Table } from '../components/ui/Table';
-import { Search, AlertCircle, Download } from 'lucide-react';
+import { Search, AlertCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -31,6 +31,8 @@ export function LoyersImpayes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBailleur, setSelectedBailleur] = useState('');
   const [bailleurs, setBailleurs] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedLoyer, setSelectedLoyer] = useState<LoyerImpaye | null>(null);
 
   useEffect(() => {
     loadData();
@@ -134,42 +136,31 @@ export function LoyersImpayes() {
     }
   };
 
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Loyers Impayés', 14, 20);
-
-    doc.setFontSize(10);
-    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 14, 28);
-    doc.text(`Total impayés: ${formatCurrency(filtered.reduce((sum, i) => sum + i.montant_du, 0))}`, 14, 34);
-
-    doc.autoTable({
-      head: [['Locataire', 'Produit', 'Immeuble', 'Bailleur', 'Mois', 'Montant', 'Téléphone']],
-      body: filtered.map(i => [
-        `${i.locataire_prenom} ${i.locataire_nom}`,
-        i.unite_nom,
-        i.immeuble_nom,
-        `${i.bailleur_prenom} ${i.bailleur_nom}`,
-        new Date(i.mois_concerne).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }),
-        formatCurrency(i.montant_du),
-        i.telephone_locataire,
-      ]),
-      startY: 40,
-      styles: { fontSize: 8 },
-    });
-
-    doc.save('loyers-impayes.pdf');
+  const formatCurrency = (amount: number) => {
+    if (!amount) return '0 F CFA';
+    return (
+      new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
+        .format(amount)
+        .replace(/\u00A0/g, ' ') + ' F CFA'
+    );
   };
 
- const formatCurrency = (amount: number) => {
-  if (!amount) return '0 F CFA';
-  return (
-    new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
-      .format(amount)
-      .replace(/\u00A0/g, ' ') + ' F CFA'
-  );
-};
+  const handlePayerClick = (loyer: LoyerImpaye) => {
+    setSelectedLoyer(loyer);
+    setShowModal(true);
+  };
 
+  const handleConfirmPaiement = async () => {
+    if (!selectedLoyer) return;
+    try {
+      // 🔸 Ici tu pourras ajouter ta logique Supabase
+      console.log('Paiement confirmé pour:', selectedLoyer);
+      setShowModal(false);
+      setSelectedLoyer(null);
+    } catch (error) {
+      console.error('Erreur lors du paiement:', error);
+    }
+  };
 
   const totalImpaye = filtered.reduce((sum, i) => sum + i.montant_du, 0);
 
@@ -201,6 +192,22 @@ export function LoyersImpayes() {
       render: (i: LoyerImpaye) => formatCurrency(i.montant_du),
     },
     { key: 'telephone_locataire', label: 'Téléphone' },
+    {
+      key: 'actions',
+      label: 'Action',
+      render: (i: LoyerImpaye) => (
+        <button
+          onClick={() => handlePayerClick(i)}
+          className="px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-md 
+                     transition-all duration-300"
+          style={{
+            background: 'linear-gradient(135deg, #F58220, #C0392B)',
+          }}
+        >
+          Payer ce loyer
+        </button>
+      ),
+    },
   ];
 
   if (loading) {
@@ -218,15 +225,9 @@ export function LoyersImpayes() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Loyers Impayés</h1>
           <p className="text-slate-600">Suivi des loyers en retard</p>
         </div>
-        {/*<button
-          onClick={exportPDF}
-          className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-        >
-          <Download className="w-5 h-5" />
-          Export PDF
-        </button>*/}
       </div>
 
+      {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-red-200">
           <div className="flex items-center gap-3 mb-2">
@@ -253,6 +254,7 @@ export function LoyersImpayes() {
         </div>
       </div>
 
+      {/* Filtres + Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="relative">
@@ -262,7 +264,7 @@ export function LoyersImpayes() {
               placeholder="Rechercher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
           </div>
 
@@ -270,7 +272,7 @@ export function LoyersImpayes() {
             <select
               value={selectedBailleur}
               onChange={(e) => setSelectedBailleur(e.target.value)}
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
               <option value="">Tous les bailleurs</option>
               {bailleurs.map((b, index) => (
@@ -284,6 +286,53 @@ export function LoyersImpayes() {
 
         <Table columns={columns} data={filtered} />
       </div>
+
+      {/* MODAL DE CONFIRMATION */}
+      {showModal && selectedLoyer && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+            <img
+              src="/templates/Logo confort immo archi neutre.png"
+              alt="Logo"
+              className="mx-auto mb-4 h-16 w-auto object-contain"
+            />
+            <h2 className="text-xl font-bold text-slate-800 mb-2">
+              Confirmer le paiement ?
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Voulez-vous confirmer le paiement du loyer de{' '}
+              <strong>
+                {selectedLoyer.locataire_prenom} {selectedLoyer.locataire_nom}
+              </strong>{' '}
+              pour le mois de{' '}
+              <strong>
+                {new Date(selectedLoyer.mois_concerne).toLocaleDateString('fr-FR', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </strong>{' '}
+              ?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={handleConfirmPaiement}
+                className="px-6 py-2 rounded-lg text-white font-semibold shadow-md"
+                style={{
+                  background: 'linear-gradient(135deg, #F58220, #C0392B)',
+                }}
+              >
+                Oui, confirmer
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-6 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-slate-800 font-semibold transition"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
