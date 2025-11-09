@@ -1,116 +1,63 @@
-import React, { useState } from 'react'; // [1]
-
-import { AuthProvider, useAuth } from './contexts/AuthContext'; // [1]
-
-import { LoginForm } from './components/auth/LoginForm'; // [1]
-
-import { Sidebar } from './components/layout/Sidebar'; // [1]
-
-import { Dashboard } from './pages/Dashboard'; // [1]
-
-import { Bailleurs } from './pages/Bailleurs'; // [1]
-
-import { Immeubles } from './pages/Immeubles'; // [1]
-
-import { Unites } from './pages/Unites'; // [1]
-
-import { Locataires } from './pages/Locataires'; // [1]
-
-import { Contrats } from './pages/Contrats'; // [1]
-
-import { Paiements } from './pages/Paiements'; // [1]
-
-import { Depenses } from './pages/Depenses'; // [2]
-
-import { Commissions } from './pages/Commissions';
-
-import { LoyersImpayes } from './pages/LoyersImpayes'; // [2]
-
-import { FiltresAvances } from './pages/FiltresAvances'; // [2]
-
-// NOUVEL IMPORT CENTRALISÉ : Remplace Comptabilite, BilanEntreprise, RapportsImmeubles, et BilansMensuels
-import { TableauDeBordFinancierGlobal } from './pages/TableauDeBordFinancierGlobal';
-
-// Les imports suivants ont été supprimés car ils sont consolidés dans TableauDeBordFinancierGlobal :
-// import { Comptabilite } from './pages/Comptabilite'; [2]
-// import { BilanEntreprise } from './pages/BilanEntreprise'; [2]
-// import { RapportsImmeubles } from './pages/RapportsImmeubles'; [2]
-// import { BilansMensuels } from './pages/BilansMensuels'; [2]
-
 function AppContent() {
-    const { user, loading } = useAuth(); // [2]
-    const [currentPage, setCurrentPage] = useState('dashboard'); // [2]
+    const { user, loading } = useAuth();
+    const [currentPage, setCurrentPage] = useState('dashboard');
 
-    if (loading) { // [3]
-        return ( // [3]
+    if (loading) {
+        return (
             <div className="flex items-center justify-center min-h-screen">
                 Chargement...
             </div>
         );
     }
 
-    if (!user) { // [3]
-        return <LoginForm />; // [3]
+    if (!user) {
+        return <LoginForm />;
     }
 
-    const renderPage = () => { // [3]
-        switch (currentPage) { // [3]
-            case 'dashboard': // [3]
-                return <Dashboard />; // [3]
-            case 'bailleurs': // [3]
-                return <Bailleurs />; // [3]
-            case 'immeubles': // [3]
-                return <Immeubles />; // [3]
-            case 'unites': // [3]
-                return <Unites />; // [3]
-            case 'locataires': // [3]
-                return <Locataires />; // [3]
-            case 'contrats': // [3]
-                return <Contrats />; // [3]
-            case 'paiements': // [3]
-                return <Paiements />; // [3]
-            case 'depenses': // [3]
-                return <Depenses />; // [3]
+    const renderPage = () => {
+        switch (currentPage) {
+            case 'dashboard':
+                return <Dashboard />;
+            case 'bailleurs':
+                return <Bailleurs />;
+            case 'immeubles':
+                return <Immeubles />;
+            case 'unites':
+                return <Unites />;
+            case 'locataires':
+                return <Locataires />;
+            case 'contrats':
+                return <Contrats />;
+            case 'paiements':
+                return <Paiements />;
+            case 'depenses':
+                return <Depenses />;
             case 'commissions':
                 return <Commissions />;
-            case 'loyers-impayes': // [3]
-                return <LoyersImpayes />; // [3]
-                
-            // NOUVEAU CAS SYNCHRONISÉ AVEC SIDEBAR : Remplace les quatre anciens cas financiers
-            case 'tableau-de-bord-financier': 
+            case 'loyers-impayes':
+                return <LoyersImpayes />;
+            case 'tableau-de-bord-financier':
                 return <TableauDeBordFinancierGlobal />;
-
-            // Les anciens cas suivants sont retirés pour éviter les erreurs :
-            // case 'bilan-entreprise': [3]
-            // case 'rapports-immeubles': [3]
-            // case 'bilans-mensuels': [3]
-            // case 'comptabilite': [4]
-
-            case 'filtres-avances': // [3]
-                return <FiltresAvances />; // [3]
-
-            default: // [4]
-                return <Dashboard />; // [4]
+            case 'filtres-avances':
+                return <FiltresAvances />;
+            default:
+                return <Dashboard />;
         }
     };
 
     return (
-        <div className="flex min-h-screen">
-            {/* Synchronisation : La fonction setCurrentPage est passée sous le nom onNavigate [5] */}
-            <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} /> 
-            <main className="flex-1 overflow-y-auto bg-gray-50"> 
-                {renderPage()} {/* [4] */}
+        <div className="flex h-screen overflow-hidden">
+            {/* Sidebar fixée */}
+            <Sidebar
+                currentPage={currentPage}
+                onNavigate={setCurrentPage}
+                className="fixed left-0 top-0 h-full"
+            />
+
+            {/* Contenu principal défilable indépendamment */}
+            <main className="flex-1 ml-64 overflow-y-auto bg-gray-50">
+                {renderPage()}
             </main>
         </div>
     );
 }
-
-function App() { // [4]
-    return ( // [4]
-        <AuthProvider>
-            <AppContent />
-        </AuthProvider>
-    );
-} // [4]
-
-export default App; // [4]
