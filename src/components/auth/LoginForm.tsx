@@ -26,7 +26,7 @@ export function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
         {/* --- Logo centré --- */}
-        <div className="flex items-center justify-center mb-10">
+        <div className="flex items-center justify-center mb-0">
           <img
             src="/templates/Logo confort immo archi neutre.png"
             alt="Logo Confort Immo Archi"
