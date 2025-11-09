@@ -84,7 +84,7 @@ export function LoginForm() {
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-600">
-          <p>Connectez-vous à votre compte</p>
+          <p>© 2025 Confort Immo Archi. Tous droits réservés.</p>
         </div>
       </div>
     </div>
