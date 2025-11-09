@@ -33,10 +33,6 @@ export function LoginForm() {
             className="h-20 w-auto object-contain"
           />
         </div>
-
-        <h1 className="text-3xl font-bold text-center text-slate-900 mb-2">
-          Confort Immo Archi
-        </h1>
         <p className="text-center text-slate-600 mb-8">
           Gestion immobilière professionnelle
         </p>
