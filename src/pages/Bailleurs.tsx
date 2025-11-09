@@ -149,7 +149,8 @@ export function Bailleurs() {
     { key: 'mandat', label: 'Mandat', render: (b: Bailleur) => (
       <button
         onClick={() => generateMandatBailleurPDF(b)}
-        className="px-3 py-1.5 text-sm bg-slate-50 text-slate-700 hover:bg-slate-100 rounded-lg transition"
+        className="px-4 py-2 text-sm font-medium text-white rounded-lg shadow-md 
+             transition-all duration-300 transform hover:scale-105"
       >
         Mandat PDF
       </button>
