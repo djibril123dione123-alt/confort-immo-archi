@@ -15,24 +15,16 @@ export function Depenses() {
   const [editingDepense, setEditingDepense] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categories = [
-    '🌐 Internet',
-    '⚡ Électricité',
-    '💧 Eau',
-    '👷 Salaires',
-    '🚌 Prime de transport',
-    '📱 Crédit téléphonique',
-    '📦 Autres',
-  ];
-
   const [formData, setFormData] = useState({
     montant: '',
     date_depense: new Date().toISOString().split('T')[0],
-    categorie: categories[0], // valeur par défaut valide
+    categorie: 'maintenance' as const,
     description: '',
     beneficiaire: '',
     immeuble_id: '',
   });
+
+  const categories = ['🌐 Internet', '⚡ Électricité', '💧 Eau', '👷 Salaires', '🚌 Prime de transport','📱 Crédit téléphonique', '📦 Autres'];
 
   useEffect(() => {
     loadData();
@@ -89,7 +81,7 @@ export function Depenses() {
     setFormData({
       montant: depense.montant.toString(),
       date_depense: depense.date_depense,
-      categorie: depense.categorie || categories[0],
+      categorie: depense.categorie,
       description: depense.description,
       beneficiaire: depense.beneficiaire,
       immeuble_id: depense.immeuble_id || '',
@@ -113,7 +105,7 @@ export function Depenses() {
     setFormData({
       montant: '',
       date_depense: new Date().toISOString().split('T')[0],
-      categorie: categories[0],
+      categorie: 'maintenance',
       description: '',
       beneficiaire: '',
       immeuble_id: '',
@@ -132,12 +124,7 @@ export function Depenses() {
     { key: 'immeuble', label: 'Immeuble', render: (d: any) => d.immeubles?.nom || '-' },
   ];
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div>Chargement...</div>
-      </div>
-    );
+  if (loading) return <div className="flex items-center justify-center h-full"><div>Chargement...</div></div>;
 
   return (
     <div className="p-8">
@@ -148,7 +135,7 @@ export function Depenses() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-5 h-5" />
           Nouvelle dépense
@@ -201,11 +188,11 @@ export function Depenses() {
             <select
               required
               value={formData.categorie}
-              onChange={(e) => setFormData({ ...formData, categorie: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, categorie: e.target.value as any })}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               {categories.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
               ))}
             </select>
           </div>
@@ -245,10 +232,10 @@ export function Depenses() {
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={closeModal} className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition">
+            <button type="button" onClick={closeModal} className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50">
               Annuler
             </button>
-            <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
               {editingDepense ? 'Modifier' : 'Créer'}
             </button>
           </div>

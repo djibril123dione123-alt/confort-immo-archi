@@ -17,7 +17,7 @@ import {
   TrendingDown,
   ChevronRight,
 } from 'lucide-react';
-import { Percent } from 'lucide-react'; // à ajouter en haut du fichier si pas encore importé
+
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -35,7 +35,6 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'unites', label: 'Produits', icon: DoorOpen, roles: ['admin'] },
     { id: 'locataires', label: 'Locataires', icon: Users, roles: ['admin', 'agent', 'comptable'] },
     { id: 'contrats', label: 'Contrats', icon: FileText, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
-    { id: 'commissions', label: 'Commissions', icon: Percent, roles: ['admin', 'comptable'] },
     { id: 'paiements', label: 'Paiements', icon: CreditCard, roles: ['admin', 'agent', 'comptable', 'bailleur'] },
     { id: 'depenses', label: 'Dépenses', icon: TrendingDown, roles: ['admin'] },
     { id: 'loyers-impayes', label: 'Loyers impayés', icon: AlertCircle, roles: ['admin', 'agent', 'comptable'] },
