@@ -1,125 +1,374 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { Table } from '../components/ui/Table';
-import { Plus, Search, FileText, Download } from 'lucide-react';
+import { Plus, Search, Download, AlertCircle, TrendingUp } from 'lucide-react';
 import { generateContratPDF } from '../lib/pdf';
 
+// =========================
+// 🎨 PALETTE CONFORT IMMO ARCHI
+// =========================
+const BRAND_COLORS = {
+  primary: '#F58220',
+  primaryLight: '#FFA64D',
+  red: '#C0392B',
+  gray: '#555555',
+} as const;
+
+// =========================
+// 🔸 TYPES
+// =========================
+interface Locataire {
+  id: string;
+  nom: string;
+  prenom: string;
+  telephone?: string;
+  email?: string;
+  adresse_personnelle?: string;
+  piece_identite?: string;
+}
+
+interface Bailleur {
+  nom: string;
+  prenom: string;
+  telephone?: string;
+  adresse?: string;
+}
+
+interface Immeuble {
+  nom: string;
+  adresse?: string;
+  bailleurs?: Bailleur;
+}
+
+interface Unite {
+  id: string;
+  nom: string;
+  loyer_base: number;
+  statut: 'libre' | 'loue';
+  immeubles?: Immeuble;
+}
+
+interface Contrat {
+  id: string;
+  locataire_id: string;
+  unite_id: string;
+  date_debut: string;
+  date_fin?: string;
+  loyer_mensuel: number;
+  caution?: number;
+  pourcentage_agence: number;
+  commission?: number;
+  statut: 'actif' | 'expire' | 'resilie';
+  created_at?: string;
+  locataires?: Locataire;
+  unites?: Unite;
+}
+
+interface FormData {
+  locataire_id: string;
+  unite_id: string;
+  date_debut: string;
+  date_fin: string;
+  loyer_mensuel: string;
+  caution: string;
+  pourcentage_agence: string;
+  commission: string;
+  statut: 'actif' | 'expire' | 'resilie';
+}
+
+// =========================
+// 🔸 VALEURS INITIALES
+// =========================
+const INITIAL_FORM_DATA: FormData = {
+  locataire_id: '',
+  unite_id: '',
+  date_debut: '',
+  date_fin: '',
+  loyer_mensuel: '',
+  caution: '',
+  pourcentage_agence: '10',
+  commission: '',
+  statut: 'actif',
+};
+
+// =========================
+// 🔸 COMPOSANT PRINCIPAL
+// =========================
 export function Contrats() {
-  const [contrats, setContrats] = useState<any[]>([]);
-  const [filtered, setFiltered] = useState<any[]>([]);
-  const [locataires, setLocataires] = useState<any[]>([]);
-  const [unites, setUnites] = useState<any[]>([]);
+  // États
+  const [contrats, setContrats] = useState<Contrat[]>([]);
+  const [locataires, setLocataires] = useState<Locataire[]>([]);
+  const [unites, setUnites] = useState<Unite[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editing, setEditing] = useState<any>(null);
+  const [editing, setEditing] = useState<Contrat | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formData, setFormData] = useState({
-    locataire_id: '',
-    unite_id: '',
-    date_debut: '',
-    date_fin: '',
-    loyer_mensuel: '',
-    caution: '',
-    pourcentage_agence: '10',
-    statut: 'actif' as const,
-  });
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
+  const [submitting, setSubmitting] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadData();
+  // =========================
+  // 💰 FORMATAGE DES MONTANTS
+  // =========================
+  const formatCurrency = useCallback((amount: number | string): string => {
+    if (!amount) return '0 F CFA';
+    const cleaned = String(amount).replace(/[/\s]/g, '');
+    const num = Number(cleaned);
+    if (isNaN(num)) return '0 F CFA';
+    return (
+      new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
+        .format(num)
+        .replace(/\u00A0/g, ' ') + ' F CFA'
+    );
   }, []);
 
-  useEffect(() => {
-    setFiltered(contrats.filter(c => JSON.stringify(c).toLowerCase().includes(searchTerm.toLowerCase())));
-  }, [searchTerm, contrats]);
-
-  const loadData = async () => {
+  // =========================
+  // 🔁 CHARGEMENT DES DONNÉES
+  // =========================
+  const loadData = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       const [contratsRes, locatairesRes, unitesRes] = await Promise.all([
-        supabase.from('contrats').select('*, locataires(nom, prenom, telephone, email, adresse_personnelle, piece_identite), unites(nom, loyer_base, immeubles(nom, adresse, bailleurs(nom, prenom, telephone, adresse)))').order('created_at', { ascending: false }),
-        supabase.from('locataires').select('id, nom, prenom').eq('actif', true),
-        supabase.from('unites').select('id, nom, loyer_base, statut, immeubles(nom)').eq('actif', true).eq('statut', 'libre'),
+        supabase
+          .from('contrats')
+          .select(`
+            *,
+            locataires(nom, prenom, telephone, email, adresse_personnelle, piece_identite),
+            unites(
+              nom,
+              loyer_base,
+              immeubles(
+                nom,
+                adresse,
+                bailleurs(nom, prenom, telephone, adresse)
+              )
+            )
+          `)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('locataires')
+          .select('id, nom, prenom')
+          .eq('actif', true)
+          .order('nom', { ascending: true }),
+        supabase
+          .from('unites')
+          .select('id, nom, loyer_base, statut, immeubles(nom)')
+          .eq('actif', true)
+          .eq('statut', 'libre')
+          .order('nom', { ascending: true }),
       ]);
+
+      if (contratsRes.error) throw contratsRes.error;
+      if (locatairesRes.error) throw locatairesRes.error;
+      if (unitesRes.error) throw unitesRes.error;
+
       setContrats(contratsRes.data || []);
-      setFiltered(contratsRes.data || []);
       setLocataires(locatairesRes.data || []);
       setUnites(unitesRes.data || []);
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (err: any) {
+      console.error('Erreur chargement:', err);
+      setError(err.message || 'Erreur lors du chargement des données');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleUniteChange = (uniteId: string) => {
-    const unite = unites.find(u => u.id === uniteId);
-    setFormData({
-      ...formData,
-      unite_id: uniteId,
-      loyer_mensuel: unite ? unite.loyer_base.toString() : '',
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // =========================
+  // 🔍 FILTRAGE DES CONTRATS
+  // =========================
+  const filteredContrats = useMemo(() => {
+    if (!searchTerm.trim()) return contrats;
+
+    const term = searchTerm.toLowerCase();
+    return contrats.filter((c) => {
+      const locataire = c.locataires
+        ? `${c.locataires.prenom} ${c.locataires.nom}`.toLowerCase()
+        : '';
+      const unite = c.unites?.nom?.toLowerCase() || '';
+      const immeuble = c.unites?.immeubles?.nom?.toLowerCase() || '';
+      const statut = c.statut.toLowerCase();
+
+      return (
+        locataire.includes(term) ||
+        unite.includes(term) ||
+        immeuble.includes(term) ||
+        statut.includes(term)
+      );
     });
-  };
+  }, [searchTerm, contrats]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { data: uniteCheck } = await supabase
-        .from('unites')
-        .select('statut')
-        .eq('id', formData.unite_id)
-        .single();
+  // =========================
+  // 📊 STATISTIQUES
+  // =========================
+  const stats = useMemo(() => {
+    const actifs = contrats.filter((c) => c.statut === 'actif');
+    const revenuTotal = actifs.reduce((sum, c) => {
+      const partAgence = (c.loyer_mensuel * (c.pourcentage_agence || 0)) / 100;
+      const commission = c.commission || 0;
+      return sum + partAgence + commission;
+    }, 0);
 
-      if (uniteCheck && uniteCheck.statut === 'loue') {
-        alert('Cette produit est déjà occupée. Veuillez sélectionner une autre produit.');
+    return {
+      total: contrats.length,
+      actifs: actifs.length,
+      expires: contrats.filter((c) => c.statut === 'expire').length,
+      resilies: contrats.filter((c) => c.statut === 'resilie').length,
+      revenuTotal,
+    };
+  }, [contrats]);
+
+  // =========================
+  // 🏢 GESTION CHANGEMENT D'UNITÉ
+  // =========================
+  const handleUniteChange = useCallback(
+    (uniteId: string) => {
+      const unite = unites.find((u) => u.id === uniteId);
+      setFormData((prev) => ({
+        ...prev,
+        unite_id: uniteId,
+        loyer_mensuel: unite ? unite.loyer_base.toString() : '',
+      }));
+    },
+    [unites]
+  );
+
+  // =========================
+  // ✅ VALIDATION DU FORMULAIRE
+  // =========================
+  const validateForm = useCallback((): string | null => {
+    if (!formData.locataire_id) return 'Veuillez sélectionner un locataire';
+    if (!formData.unite_id) return 'Veuillez sélectionner un produit';
+    if (!formData.date_debut) return 'Veuillez saisir la date de début';
+    if (!formData.loyer_mensuel || parseFloat(formData.loyer_mensuel) <= 0) {
+      return 'Veuillez saisir un loyer valide';
+    }
+    return null;
+  }, [formData]);
+
+  // =========================
+  // 📝 CRÉATION DE CONTRAT
+  // =========================
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      const validationError = validateForm();
+      if (validationError) {
+        alert(validationError);
         return;
       }
 
-      const data = {
-        ...formData,
-        loyer_mensuel: parseFloat(formData.loyer_mensuel),
-        caution: formData.caution ? parseFloat(formData.caution) : null,
-        pourcentage_agence: parseFloat(formData.pourcentage_agence),
-      };
+      setSubmitting(true);
+      try {
+        const { data: uniteCheck, error: uniteError } = await supabase
+          .from('unites')
+          .select('statut')
+          .eq('id', formData.unite_id)
+          .single();
 
-      const { error } = await supabase.from('contrats').insert([data]);
+        if (uniteError) throw uniteError;
 
-      if (error) throw error;
+        if (uniteCheck && uniteCheck.statut === 'loue') {
+          alert('Cette produit est déjà occupée. Veuillez en sélectionner une autre.');
+          return;
+        }
 
-      await supabase.from('unites').update({ statut: 'loue' }).eq('id', formData.unite_id);
+        const data = {
+          locataire_id: formData.locataire_id,
+          unite_id: formData.unite_id,
+          date_debut: formData.date_debut,
+          date_fin: formData.date_fin || null,
+          loyer_mensuel: parseFloat(formData.loyer_mensuel),
+          caution: formData.caution ? parseFloat(formData.caution) : null,
+          pourcentage_agence: parseFloat(formData.pourcentage_agence),
+          commission: formData.commission ? parseFloat(formData.commission) : null,
+          statut: formData.statut,
+        };
 
-      closeModal();
-      loadData();
-      alert('Contrat créé avec succès!');
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Erreur lors de la création du contrat');
-    }
-  };
+        const { error: insertError } = await supabase
+          .from('contrats')
+          .insert([data]);
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const data = {
-        statut: formData.statut,
-        date_fin: formData.date_fin || null,
-      };
+        if (insertError) throw insertError;
 
-      await supabase.from('contrats').update(data).eq('id', editing.id);
+        const { error: updateError } = await supabase
+          .from('unites')
+          .update({ statut: 'loue' })
+          .eq('id', formData.unite_id);
 
-      if (formData.statut === 'resilie' || formData.statut === 'expire') {
-        await supabase.from('unites').update({ statut: 'libre' }).eq('id', editing.unite_id);
+        if (updateError) throw updateError;
+
+        closeModal();
+        await loadData();
+        alert('✅ Contrat créé avec succès!');
+      } catch (err: any) {
+        console.error('Erreur création:', err);
+        alert(`❌ Erreur: ${err.message}`);
+      } finally {
+        setSubmitting(false);
       }
+    },
+    [formData, validateForm, loadData]
+  );
 
-      closeEditModal();
-      loadData();
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Erreur');
-    }
-  };
+  // =========================
+  // ✏️ MODIFICATION DE CONTRAT
+  // =========================
+  const handleEditSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editing) return;
 
-  const handleEdit = (contrat: any) => {
+      setSubmitting(true);
+      try {
+        const data: any = {
+          statut: formData.statut,
+          date_fin: formData.date_fin || null,
+          commission: formData.commission ? parseFloat(formData.commission) : null,
+        };
+
+        const { error: updateError } = await supabase
+          .from('contrats')
+          .update(data)
+          .eq('id', editing.id);
+
+        if (updateError) throw updateError;
+
+        if (formData.statut === 'resilie' || formData.statut === 'expire') {
+          const { error: uniteError } = await supabase
+            .from('unites')
+            .update({ statut: 'libre' })
+            .eq('id', editing.unite_id);
+
+          if (uniteError) throw uniteError;
+        }
+
+        closeEditModal();
+        await loadData();
+        alert('✅ Contrat modifié avec succès!');
+      } catch (err: any) {
+        console.error('Erreur modification:', err);
+        alert(`❌ Erreur: ${err.message}`);
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [formData, editing, loadData]
+  );
+
+  // =========================
+  // 🖊️ OUVERTURE MODAL D'ÉDITION
+  // =========================
+  const handleEdit = useCallback((contrat: Contrat) => {
     setEditing(contrat);
     setFormData({
       locataire_id: contrat.locataire_id,
@@ -129,12 +378,17 @@ export function Contrats() {
       loyer_mensuel: contrat.loyer_mensuel.toString(),
       caution: contrat.caution?.toString() || '',
       pourcentage_agence: contrat.pourcentage_agence.toString(),
+      commission: contrat.commission ? contrat.commission.toString() : '',
       statut: contrat.statut,
     });
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const handleDownloadPDF = async (contratId: string) => {
+  // =========================
+  // 📄 TÉLÉCHARGEMENT PDF
+  // =========================
+  const handleDownloadPDF = useCallback(async (contratId: string) => {
+    setDownloadingId(contratId);
     try {
       const { data: contrat, error } = await supabase
         .from('contrats')
@@ -158,159 +412,476 @@ export function Contrats() {
       if (contrat) {
         await generateContratPDF(contrat);
       }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Erreur lors de la génération du PDF');
+    } catch (err: any) {
+      console.error('Erreur PDF:', err);
+      alert(`❌ Erreur lors de la génération du PDF: ${err.message}`);
+    } finally {
+      setDownloadingId(null);
     }
-  };
+  }, []);
 
-  
-
-  const closeModal = () => {
+  // =========================
+  // 🚪 FERMETURE DES MODALS
+  // =========================
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    setFormData({ locataire_id: '', unite_id: '', date_debut: '', date_fin: '', loyer_mensuel: '', caution: '', pourcentage_agence: '10', statut: 'actif' });
-  };
+    setFormData(INITIAL_FORM_DATA);
+  }, []);
 
-  const closeEditModal = () => {
+  const closeEditModal = useCallback(() => {
     setIsEditModalOpen(false);
     setEditing(null);
-    setFormData({ locataire_id: '', unite_id: '', date_debut: '', date_fin: '', loyer_mensuel: '', caution: '', pourcentage_agence: '10', statut: 'actif' });
-  };
+    setFormData(INITIAL_FORM_DATA);
+  }, []);
 
-const formatCurrency = (amount: number | string): string => {
-  if (!amount) return "0 F CFA";
-
-  // Nettoyage des formats erronés ("/", espaces multiples, etc.)
-  const cleaned = String(amount)
-    .replace(/\//g, "") // retire tous les slashs
-    .replace(/\s/g, ""); // retire les espaces parasites
-
-  const num = Number(cleaned);
-
-  return (
-    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 0 })
-      .format(num)
-      .replace(/\u00A0/g, " ") + " F CFA"
+  // =========================
+  // 📋 COLONNES DU TABLEAU
+  // =========================
+  const columns = useMemo(
+    () => [
+      {
+        key: 'locataire',
+        label: 'Locataire',
+        render: (c: Contrat) =>
+          c.locataires ? `${c.locataires.prenom} ${c.locataires.nom}` : '-',
+      },
+      {
+        key: 'unite',
+        label: 'Produit',
+        render: (c: Contrat) => c.unites?.nom || '-',
+      },
+      {
+        key: 'immeuble',
+        label: 'Immeuble',
+        render: (c: Contrat) => c.unites?.immeubles?.nom || '-',
+      },
+      {
+        key: 'date_debut',
+        label: 'Début',
+        render: (c: Contrat) =>
+          new Date(c.date_debut).toLocaleDateString('fr-FR'),
+      },
+      {
+        key: 'loyer_mensuel',
+        label: 'Loyer',
+        render: (c: Contrat) => formatCurrency(c.loyer_mensuel),
+      },
+      {
+        key: 'commission',
+        label: 'Commission',
+        render: (c: Contrat) =>
+          c.commission ? formatCurrency(c.commission) : '-',
+      },
+      {
+        key: 'revenue_total',
+        label: 'Revenue T',
+        render: (c: Contrat) => {
+          const partAgence = (c.loyer_mensuel * (c.pourcentage_agence || 0)) / 100;
+          const commission = c.commission || 0;
+          return formatCurrency(partAgence + commission);
+        },
+      },
+      {
+        key: 'statut',
+        label: 'Statut',
+        render: (c: Contrat) => (
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
+              c.statut === 'actif'
+                ? 'bg-green-100 text-green-700'
+                : c.statut === 'resilie'
+                ? 'bg-red-100 text-red-700'
+                : 'bg-gray-100 text-gray-700'
+            }`}
+          >
+            {c.statut.charAt(0).toUpperCase() + c.statut.slice(1)}
+          </span>
+        ),
+      },
+      {
+        key: 'actions',
+        label: 'PDF',
+        render: (c: Contrat) => (
+          <button
+            onClick={() => handleDownloadPDF(c.id)}
+            disabled={downloadingId === c.id}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            {downloadingId === c.id ? '...' : 'PDF'}
+          </button>
+        ),
+      },
+    ],
+    [formatCurrency, handleDownloadPDF, downloadingId]
   );
-};
 
+  // =========================
+  // 🧩 RENDU
+  // =========================
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full p-8">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 rounded-full animate-spin"
+               style={{ 
+                 borderColor: BRAND_COLORS.primary,
+                 borderTopColor: 'transparent'
+               }} />
+          <p className="mt-4 text-lg" style={{ color: BRAND_COLORS.gray }}>
+            Chargement des contrats...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-
-  const columns = [
-    { key: 'locataire', label: 'Locataire', render: (c: any) => c.locataires ? `${c.locataires.prenom} ${c.locataires.nom}` : '-' },
-    { key: 'unite', label: 'produit', render: (c: any) => c.unites?.nom || '-' },
-    { key: 'immeuble', label: 'Immeuble', render: (c: any) => c.unites?.immeubles?.nom || '-' },
-    { key: 'date_debut', label: 'Début' },
-    { key: 'loyer_mensuel', label: 'Loyer', render: (c: any) => formatCurrency(c.loyer_mensuel) },
-    { key: 'statut', label: 'Statut', render: (c: any) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${c.statut === 'actif' ? 'bg-green-100 text-green-700' : c.statut === 'resilie' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>{c.statut}</span> },
-    { key: 'actions', label: 'PDF', render: (c: any) => (
-      <button
-        onClick={() => handleDownloadPDF(c.id)}
-        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-      >
-        <Download className="w-4 h-4" />
-        PDF
-      </button>
-    )},
-  ];
-
-  if (loading) return <div className="flex items-center justify-center h-full"><div className="text-lg text-slate-600">Chargement...</div></div>;
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="border rounded-lg p-6 flex items-start gap-3"
+             style={{ 
+               backgroundColor: '#FFF5F5',
+               borderColor: BRAND_COLORS.red
+             }}>
+          <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" 
+                       style={{ color: BRAND_COLORS.red }} />
+          <div>
+            <h3 className="text-lg font-semibold mb-1" 
+                style={{ color: BRAND_COLORS.red }}>
+              Erreur de chargement
+            </h3>
+            <p style={{ color: BRAND_COLORS.red }}>{error}</p>
+            <button
+              onClick={loadData}
+              className="mt-4 px-4 py-2 text-white rounded-lg transition hover:opacity-90"
+              style={{ background: `linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.red})` }}
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
+      {/* 📊 En-tête et statistiques */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Contrats</h1>
+          <h1 className="text-3xl font-bold mb-2" style={{ color: BRAND_COLORS.gray }}>
+            Contrats
+          </h1>
           <p className="text-slate-600">Gestion des contrats de location</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 text-white rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105"
+          style={{ background: `linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.red})` }}
+        >
           <Plus className="w-5 h-5" />
           Nouveau contrat
         </button>
       </div>
 
+      {/* Statistiques */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-600 font-medium">Total contrats</p>
+          <p className="text-2xl font-bold text-blue-900">{stats.total}</p>
+        </div>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-sm text-green-600 font-medium">Actifs</p>
+          <p className="text-2xl font-bold text-green-900">{stats.actifs}</p>
+        </div>
+        <div className="border rounded-lg p-4"
+             style={{ backgroundColor: '#FFF4E6', borderColor: BRAND_COLORS.primary }}>
+          <p className="text-sm font-medium" style={{ color: BRAND_COLORS.primary }}>
+            Expirés
+          </p>
+          <p className="text-2xl font-bold" style={{ color: BRAND_COLORS.red }}>
+            {stats.expires}
+          </p>
+        </div>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <p className="text-sm text-emerald-600 font-medium">Revenue mensuel</p>
+          </div>
+          <p className="text-2xl font-bold text-emerald-900">
+            {formatCurrency(stats.revenuTotal)}
+          </p>
+        </div>
+      </div>
+
+      {/* Recherche et tableau */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <div className="mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <input
+              type="text"
+              placeholder="Rechercher un locataire, produit, immeuble..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-transparent transition-all"
+              style={{ 
+                boxShadow: searchTerm ? `0 0 0 3px rgba(245, 130, 32, 0.1)` : 'none' 
+              }}
+            />
           </div>
         </div>
-        <Table columns={columns} data={filtered} onEdit={handleEdit} />
+
+        {filteredContrats.length === 0 ? (
+          <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-slate-600 text-lg">
+              {searchTerm
+                ? 'Aucun contrat trouvé pour votre recherche'
+                : 'Aucun contrat enregistré'}
+            </p>
+          </div>
+        ) : (
+          <Table columns={columns} data={filteredContrats} onEdit={handleEdit} />
+        )}
       </div>
 
+      {/* Modal création */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title="Nouveau contrat">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Locataire *</label>
-            <select required value={formData.locataire_id} onChange={(e) => setFormData({ ...formData, locataire_id: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-              <option value="">Sélectionner</option>
-              {locataires.map((l) => (<option key={l.id} value={l.id}>{l.prenom} {l.nom}</option>))}
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Locataire *
+            </label>
+            <select
+              required
+              value={formData.locataire_id}
+              onChange={(e) =>
+                setFormData({ ...formData, locataire_id: e.target.value })
+              }
+              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none transition-all"
+              style={{ 
+                boxShadow: formData.locataire_id ? `0 0 0 3px rgba(245, 130, 32, 0.1)` : 'none'
+              }}
+            >
+              <option value="">Sélectionner un locataire</option>
+              {locataires.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.prenom} {l.nom}
+                </option>
+              ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">produit libre *</label>
-            <select required value={formData.unite_id} onChange={(e) => handleUniteChange(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-              <option value="">Sélectionner une produit</option>
-              {unites.map((u) => (<option key={u.id} value={u.id}>{u.nom} - {u.immeubles?.nom} ({formatCurrency(u.loyer_base)})</option>))}
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Produit libre *
+            </label>
+            <select
+              required
+              value={formData.unite_id}
+              onChange={(e) => handleUniteChange(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none transition-all"
+              style={{ 
+                boxShadow: formData.unite_id ? `0 0 0 3px rgba(245, 130, 32, 0.1)` : 'none'
+              }}
+            >
+              <option value="">Sélectionner un produit</option>
+              {unites.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.nom} - {u.immeubles?.nom} ({formatCurrency(u.loyer_base)})
+                </option>
+              ))}
             </select>
-            <p className="text-xs text-slate-500 mt-1">Seules les produits libres sont affichées</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Seuls les produits libres sont affichés
+            </p>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Date début *</label>
-              <input type="date" required value={formData.date_debut} onChange={(e) => setFormData({ ...formData, date_debut: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+                Date début *
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.date_debut}
+                onChange={(e) =>
+                  setFormData({ ...formData, date_debut: e.target.value })
+                }
+                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Date fin</label>
-              <input type="date" value={formData.date_fin} onChange={(e) => setFormData({ ...formData, date_fin: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+                Date fin
+              </label>
+              <input
+                type="date"
+                value={formData.date_fin}
+                onChange={(e) =>
+                  setFormData({ ...formData, date_fin: e.target.value })
+                }
+                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+              />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Loyer mensuel *</label>
-              <input type="number" required value={formData.loyer_mensuel} onChange={(e) => setFormData({ ...formData, loyer_mensuel: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+                Loyer mensuel *
+              </label>
+              <input
+                type="number"
+                required
+                value={formData.loyer_mensuel}
+                onChange={(e) =>
+                  setFormData({ ...formData, loyer_mensuel: e.target.value })
+                }
+                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Caution</label>
-              <input type="number" value={formData.caution} onChange={(e) => setFormData({ ...formData, caution: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+                Caution
+              </label>
+              <input
+                type="number"
+                value={formData.caution}
+                onChange={(e) =>
+                  setFormData({ ...formData, caution: e.target.value })
+                }
+                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+                Commission (F CFA)
+              </label>
+              <input
+                type="number"
+                value={formData.commission}
+                onChange={(e) =>
+                  setFormData({ ...formData, commission: e.target.value })
+                }
+                placeholder="Optionnel"
+                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Si l'agence trouve le locataire
+              </p>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Commission agence (%) *</label>
-            <input type="number" required value={formData.pourcentage_agence} onChange={(e) => setFormData({ ...formData, pourcentage_agence: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-          </div>
+
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={closeModal} className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition">Annuler</button>
-            <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Créer le contrat</button>
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={submitting}
+              className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition disabled:opacity-50"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="px-6 py-2 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.red})` }}
+            >
+              {submitting ? 'Création...' : 'Créer le contrat'}
+            </button>
           </div>
-        </form>
+        </div>
       </Modal>
 
-      <Modal isOpen={isEditModalOpen} onClose={closeEditModal} title="Modifier le contrat">
-        <form onSubmit={handleEditSubmit} className="space-y-4">
+      {/* Modal édition */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        title="Modifier le contrat"
+      >
+        <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Statut *</label>
-            <select required value={formData.statut} onChange={(e) => setFormData({ ...formData, statut: e.target.value as any })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Statut *
+            </label>
+            <select
+              required
+              value={formData.statut}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  statut: e.target.value as any,
+                })
+              }
+              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+            >
               <option value="actif">Actif</option>
               <option value="expire">Expiré</option>
               <option value="resilie">Résilié</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Date de fin</label>
-            <input type="date" value={formData.date_fin} onChange={(e) => setFormData({ ...formData, date_fin: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Date de fin
+            </label>
+            <input
+              type="date"
+              value={formData.date_fin}
+              onChange={(e) =>
+                setFormData({ ...formData, date_fin: e.target.value })
+              }
+              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+            />
           </div>
-          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-            <p className="text-sm text-yellow-800">
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Commission agence (F CFA)
+            </label>
+            <input
+              type="number"
+              value={formData.commission}
+              onChange={(e) =>
+                setFormData({ ...formData, commission: e.target.value })
+              }
+              placeholder="Optionnel"
+              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+            />
+          </div>
+
+          <div className="border-l-4 p-4 rounded-lg"
+               style={{ 
+                 backgroundColor: '#FFF4E6',
+                 borderColor: BRAND_COLORS.primary
+               }}>
+            <p className="text-sm" style={{ color: BRAND_COLORS.gray }}>
               <strong>Note:</strong> La résiliation ou l'expiration du contrat libérera automatiquement le produit.
             </p>
           </div>
+
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={closeEditModal} className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition">Annuler</button>
-            <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Mettre à jour</button>
+            <button
+              type="button"
+              onClick={closeEditModal}
+              disabled={submitting}
+              className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition disabled:opacity-50"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleEditSubmit}
+              disabled={submitting}
+              className="px-6 py-2 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.red})` }}
+            >
+              {submitting ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
           </div>
-        </form>
+        </div>
       </Modal>
     </div>
   );
