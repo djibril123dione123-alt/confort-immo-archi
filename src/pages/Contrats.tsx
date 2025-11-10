@@ -467,12 +467,6 @@ export function Contrats() {
         render: (c: Contrat) => formatCurrency(c.loyer_mensuel),
       },
       {
-        key: 'commission',
-        label: 'Commission',
-        render: (c: Contrat) =>
-          c.commission ? formatCurrency(c.commission) : '-',
-      },
-      {
         key: 'revenue_total',
         label: 'Revenue',
         render: (c: Contrat) => {
