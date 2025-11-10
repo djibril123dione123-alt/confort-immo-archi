@@ -1,4 +1,3 @@
-
 // =========================
 // 📄 Paiements.tsx
 // =========================
@@ -11,23 +10,13 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { Table } from '../components/ui/Table';
-import { Plus, Search, Download } from 'lucide-react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { Plus, Search } from 'lucide-react';
 import { generatePaiementFacturePDF } from '../lib/pdf';
-
-// Déclaration du module pour jsPDF autoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 // =========================
 // 🔸 Début du composant principal
 // =========================
 export function Paiements() {
-  // États de base
   const [paiements, setPaiements] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [contrats, setContrats] = useState<any[]>([]);
@@ -36,7 +25,6 @@ export function Paiements() {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPaiement, setEditingPaiement] = useState<any | null>(null);
 
-  // État du formulaire
   const initialFormData = {
     contrat_id: '',
     montant_total: '',
@@ -49,25 +37,17 @@ export function Paiements() {
   };
   const [formData, setFormData] = useState(initialFormData);
 
-  // =========================
-  // 💰 Fonction de formatage des montants
-  // =========================
   const formatCurrency = (amount: number | string): string => {
     if (!amount) return '0 F CFA';
     const cleaned = String(amount).replace(/\//g, '').replace(/\s/g, '');
     const num = Number(cleaned);
     return (
-      new Intl.NumberFormat('fr-FR', {
-        minimumFractionDigits: 0,
-      })
+      new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 })
         .format(num)
         .replace(/\u00A0/g, ' ') + ' F CFA'
     );
   };
 
-  // =========================
-  // 🔁 Chargement des données
-  // =========================
   const loadData = async () => {
     try {
       const [paiementsRes, contratsRes] = await Promise.all([
@@ -95,12 +75,10 @@ export function Paiements() {
     }
   };
 
-  // Charger les données au montage
   useEffect(() => {
     loadData();
   }, []);
 
-  // Filtrage par recherche
   useEffect(() => {
     setFiltered(
       paiements.filter((p) =>
@@ -109,9 +87,6 @@ export function Paiements() {
     );
   }, [searchTerm, paiements]);
 
-  // =========================
-  // 🗓️ Gestion du mois
-  // =========================
   const handleMoisChange = (monthValue: string) => {
     setFormData({
       ...formData,
@@ -120,9 +95,6 @@ export function Paiements() {
     });
   };
 
-  // =========================
-  // ✏️ Modification
-  // =========================
   const handleEdit = (paiement: any) => {
     setEditingPaiement(paiement);
     setFormData({
@@ -138,9 +110,6 @@ export function Paiements() {
     setIsModalOpen(true);
   };
 
-  // =========================
-  // 💾 Enregistrement / Modification
-  // =========================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -188,9 +157,6 @@ export function Paiements() {
     }
   };
 
-  // =========================
-  // ❌ Suppression d’un paiement
-  // =========================
   const handleDelete = async (paiement: any) => {
     if (!confirm('Supprimer ce paiement ?')) return;
     try {
@@ -211,9 +177,6 @@ export function Paiements() {
     }
   };
 
-  // =========================
-  // 🧾 Génération Facture PDF
-  // =========================
   const exportFacture = async (paiementId: string) => {
     try {
       const { data: pmt, error: e1 } = await supabase
@@ -257,9 +220,6 @@ export function Paiements() {
     }
   };
 
-  // =========================
-  // 📋 Colonnes du tableau
-  // =========================
   const columns = [
     {
       key: 'locataire',
@@ -338,9 +298,6 @@ export function Paiements() {
     },
   ];
 
-  // =========================
-  // 🧩 Interface
-  // =========================
   if (loading)
     return (
       <div className="p-8 text-center">
@@ -350,7 +307,6 @@ export function Paiements() {
 
   return (
     <div className="p-8">
-      {/* 🔹 En-tête */}
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-slate-800">Paiements</h1>
         <div className="flex gap-4">
@@ -363,7 +319,6 @@ export function Paiements() {
         </div>
       </header>
 
-      {/* 🔍 Barre de recherche */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
         <input
@@ -375,10 +330,8 @@ export function Paiements() {
         />
       </div>
 
-      {/* 🔹 Tableau principal */}
       <Table columns={columns} data={filtered} />
 
-      {/* 🔹 Modal de création / modification */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => {
@@ -389,7 +342,7 @@ export function Paiements() {
         title={editingPaiement ? 'Modifier le paiement' : 'Nouveau paiement'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Sélection contrat */}
+          {/* Contrat */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Contrat *
@@ -405,8 +358,7 @@ export function Paiements() {
               <option value="">Sélectionner</option>
               {contrats.map((c: any) => (
                 <option key={c.id} value={c.id}>
-                  {c.locataires?.prenom} {c.locataires?.nom} -{' '}
-                  {c.unites?.nom}
+                  {c.locataires?.prenom} {c.locataires?.nom} - {c.unites?.nom}
                 </option>
               ))}
             </select>
@@ -428,7 +380,7 @@ export function Paiements() {
             />
           </div>
 
-          {/* Mois concerné */}
+          {/* Mois */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Mois concerné *
@@ -442,7 +394,7 @@ export function Paiements() {
             />
           </div>
 
-          {/* Date paiement */}
+          {/* Date */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Date de paiement
@@ -457,7 +409,7 @@ export function Paiements() {
             />
           </div>
 
-          {/* Mode de paiement */}
+          {/* Mode paiement */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Mode de paiement
@@ -518,8 +470,12 @@ export function Paiements() {
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            > 
-              {editingPaiement ? "Modifier" : "Créer"}
+            >
+              {editingPaiement ? 'Modifier' : 'Créer'}
             </button>
           </div>
-```
+        </form>
+      </Modal>
+    </div>
+  );
+}
