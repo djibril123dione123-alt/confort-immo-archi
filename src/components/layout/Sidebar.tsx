@@ -18,7 +18,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Percent } from 'lucide-react'; // à ajouter en haut du fichier si pas encore importé
-
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
