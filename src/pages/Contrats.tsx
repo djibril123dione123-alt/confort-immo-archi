@@ -480,7 +480,7 @@ export function Contrats() {
         label: 'Statut',
         render: (c: Contrat) => (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
+            className={`px-1 py-1 rounded-full text-xs font-medium ${
               c.statut === 'actif'
                 ? 'bg-green-100 text-green-700'
                 : c.statut === 'resilie'
