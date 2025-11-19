@@ -34,7 +34,7 @@ interface Bailleur {
   prenom: string;
   telephone?: string;
   adresse?: string;
-  taux_commission?: number;
+  commission?: number;
 }
 
 interface Immeuble {
