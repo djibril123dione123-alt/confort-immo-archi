@@ -29,10 +29,12 @@ interface Locataire {
 }
 
 interface Bailleur {
+  id: string;
   nom: string;
   prenom: string;
   telephone?: string;
   adresse?: string;
+  commission?: number;
 }
 
 interface Immeuble {
@@ -56,9 +58,9 @@ interface Contrat {
   date_debut: string;
   date_fin?: string;
   loyer_mensuel: number;
+  commission?: number;
   caution?: number;
   pourcentage_agence: number;
-  commission?: number;
   statut: 'actif' | 'expire' | 'resilie';
   created_at?: string;
   locataires?: Locataire;
@@ -71,9 +73,9 @@ interface FormData {
   date_debut: string;
   date_fin: string;
   loyer_mensuel: string;
+  commission: string;
   caution: string;
   pourcentage_agence: string;
-  commission: string;
   statut: 'actif' | 'expire' | 'resilie';
 }
 
@@ -86,9 +88,9 @@ const INITIAL_FORM_DATA: FormData = {
   date_debut: '',
   date_fin: '',
   loyer_mensuel: '',
+  commission: '',
   caution: '',
   pourcentage_agence: '10',
-  commission: '',
   statut: 'actif',
 };
 
@@ -100,6 +102,7 @@ export function Contrats() {
   const [contrats, setContrats] = useState<Contrat[]>([]);
   const [locataires, setLocataires] = useState<Locataire[]>([]);
   const [unites, setUnites] = useState<Unite[]>([]);
+  const [bailleurs, setBailleurs] = useState<Bailleur[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -133,7 +136,7 @@ export function Contrats() {
       setLoading(true);
       setError(null);
 
-      const [contratsRes, locatairesRes, unitesRes] = await Promise.all([
+      const [contratsRes, locatairesRes, unitesRes, bailleursRes] = await Promise.all([
         supabase
           .from('contrats')
           .select(`
@@ -145,7 +148,7 @@ export function Contrats() {
               immeubles(
                 nom,
                 adresse,
-                bailleurs(nom, prenom, telephone, adresse)
+                bailleurs(id, nom, prenom, telephone, adresse, commission)
               )
             )
           `)
@@ -157,19 +160,26 @@ export function Contrats() {
           .order('nom', { ascending: true }),
         supabase
           .from('unites')
-          .select('id, nom, loyer_base, statut, immeubles(nom)')
+          .select('id, nom, loyer_base, statut, immeubles(nom, bailleurs(id, nom, prenom, commission))')
           .eq('actif', true)
           .eq('statut', 'libre')
+          .order('nom', { ascending: true }),
+        supabase
+          .from('bailleurs')
+          .select('id, nom, prenom, telephone, adresse, commission')
+          .eq('actif', true)
           .order('nom', { ascending: true }),
       ]);
 
       if (contratsRes.error) throw contratsRes.error;
       if (locatairesRes.error) throw locatairesRes.error;
       if (unitesRes.error) throw unitesRes.error;
+      if (bailleursRes.error) throw bailleursRes.error;
 
       setContrats(contratsRes.data || []);
       setLocataires(locatairesRes.data || []);
       setUnites(unitesRes.data || []);
+      setBailleurs(bailleursRes.data || []);
     } catch (err: any) {
       console.error('Erreur chargement:', err);
       setError(err.message || 'Erreur lors du chargement des données');
@@ -232,10 +242,17 @@ export function Contrats() {
   const handleUniteChange = useCallback(
     (uniteId: string) => {
       const unite = unites.find((u) => u.id === uniteId);
+      let commissionBailleur = '';
+
+      if (unite && unite.immeubles?.bailleurs) {
+        commissionBailleur = (unite.immeubles.bailleurs.commission || 0).toString();
+      }
+
       setFormData((prev) => ({
         ...prev,
         unite_id: uniteId,
         loyer_mensuel: unite ? unite.loyer_base.toString() : '',
+        commission: commissionBailleur,
       }));
     },
     [unites]
@@ -278,7 +295,7 @@ export function Contrats() {
         if (uniteError) throw uniteError;
 
         if (uniteCheck && uniteCheck.statut === 'loue') {
-          alert('Cette produit est déjà occupée. Veuillez en sélectionner une autre.');
+          alert('Ce produit est déjà occupé. Veuillez en sélectionner un autre.');
           return;
         }
 
@@ -288,9 +305,9 @@ export function Contrats() {
           date_debut: formData.date_debut,
           date_fin: formData.date_fin || null,
           loyer_mensuel: parseFloat(formData.loyer_mensuel),
+          commission: formData.commission ? parseFloat(formData.commission) : null,
           caution: formData.caution ? parseFloat(formData.caution) : null,
           pourcentage_agence: parseFloat(formData.pourcentage_agence),
-          commission: formData.commission ? parseFloat(formData.commission) : null,
           statut: formData.statut,
         };
 
@@ -334,6 +351,7 @@ export function Contrats() {
           statut: formData.statut,
           date_fin: formData.date_fin || null,
           commission: formData.commission ? parseFloat(formData.commission) : null,
+          caution: formData.caution ? parseFloat(formData.caution) : null,
         };
 
         const { error: updateError } = await supabase
@@ -376,9 +394,9 @@ export function Contrats() {
       date_debut: contrat.date_debut,
       date_fin: contrat.date_fin || '',
       loyer_mensuel: contrat.loyer_mensuel.toString(),
+      commission: contrat.commission?.toString() || '',
       caution: contrat.caution?.toString() || '',
       pourcentage_agence: contrat.pourcentage_agence.toString(),
-      commission: contrat.commission ? contrat.commission.toString() : '',
       statut: contrat.statut,
     });
     setIsEditModalOpen(true);
@@ -739,6 +757,24 @@ export function Contrats() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+                Commission (F CFA)
+              </label>
+              <input
+                type="number"
+                value={formData.commission}
+                onChange={(e) =>
+                  setFormData({ ...formData, commission: e.target.value })
+                }
+                placeholder="Auto-rempli"
+                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none bg-slate-50"
+                disabled
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Définie par le bailleur
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
                 Caution
               </label>
               <input
@@ -749,23 +785,6 @@ export function Contrats() {
                 }
                 className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-                Commission (F CFA)
-              </label>
-              <input
-                type="number"
-                value={formData.commission}
-                onChange={(e) =>
-                  setFormData({ ...formData, commission: e.target.value })
-                }
-                placeholder="Optionnel"
-                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Si l'agence trouve le locataire
-              </p>
             </div>
           </div>
 
@@ -834,7 +853,7 @@ export function Contrats() {
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-              Commission agence (F CFA)
+              Commission (F CFA)
             </label>
             <input
               type="number"
@@ -847,36 +866,10 @@ export function Contrats() {
             />
           </div>
 
-          <div className="border-l-4 p-4 rounded-lg"
-               style={{ 
-                 backgroundColor: '#FFF4E6',
-                 borderColor: BRAND_COLORS.primary
-               }}>
-            <p className="text-sm" style={{ color: BRAND_COLORS.gray }}>
-              <strong>Note:</strong> La résiliation ou l'expiration du contrat libérera automatiquement le produit.
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
-            <button
-              type="button"
-              onClick={closeEditModal}
-              disabled={submitting}
-              className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition disabled:opacity-50"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={handleEditSubmit}
-              disabled={submitting}
-              className="px-6 py-2 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-              style={{ background: `linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.red})` }}
-            >
-              {submitting ? 'Enregistrement...' : 'Enregistrer'}
-            </button>
-          </div>
-        </div>
-      </Modal>
-    </div>
-  );
-}
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Caution
+            </label>
+            <input
+              type="number"
+              value={formData.caution}
