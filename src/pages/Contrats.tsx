@@ -222,7 +222,7 @@ export function Contrats() {
       const partAgence = (c.loyer_mensuel * (c.commission || 0)) / 100;
       const commission = c.commission || 0;
       const caution = c.caution || 0;           // montant en CFA
-      return sum + partAgence + commission;
+      return sum + partAgence + caution;
     }, 0);
 
     return {
@@ -305,7 +305,6 @@ export function Contrats() {
           loyer_mensuel: parseFloat(formData.loyer_mensuel),
           commission: formData.commission ? parseFloat(formData.commission) : null,
           caution: formData.caution ? parseFloat(formData.caution) : null,
-          pourcentage_agence: parseFloat(formData.pourcentage_agence),
           statut: formData.statut,
         };
 
@@ -394,7 +393,6 @@ export function Contrats() {
       loyer_mensuel: contrat.loyer_mensuel.toString(),
       caution: contrat.caution?.toString() || '',
       commission: contrat.commission?.toString() || '',
-      pourcentage_agence: contrat.pourcentage_agence.toString(),
       statut: contrat.statut,
     });
     setIsEditModalOpen(true);
