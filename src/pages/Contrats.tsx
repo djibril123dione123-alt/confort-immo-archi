@@ -485,6 +485,7 @@ export function Contrats() {
         label: 'Revenue',
         render: (c: Contrat) => {
           const partAgence = (c.loyer_mensuel * (c.commission || 0)) / 100;
+          const caution = c.caution || 0;           // montant en CFA
           const commission = c.commission || 0;
           return formatCurrency(partAgence + caution);
         },
