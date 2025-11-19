@@ -73,8 +73,8 @@ interface FormData {
   date_debut: string;
   date_fin: string;
   loyer_mensuel: string;
-  commission: string;
   caution: string;
+  commission: string;
   pourcentage_agence: string;
   statut: 'actif' | 'expire' | 'resilie';
 }
@@ -88,8 +88,8 @@ const INITIAL_FORM_DATA: FormData = {
   date_debut: '',
   date_fin: '',
   loyer_mensuel: '',
-  commission: '',
   caution: '',
+  commission: '',
   pourcentage_agence: '10',
   statut: 'actif',
 };
@@ -223,8 +223,8 @@ export function Contrats() {
     const actifs = contrats.filter((c) => c.statut === 'actif');
     const revenuTotal = actifs.reduce((sum, c) => {
       const partAgence = (c.loyer_mensuel * (c.pourcentage_agence || 0)) / 100;
-      const commission = c.commission || 0;
-      return sum + partAgence + commission;
+      const caution = c.caution || 0;
+      return sum + partAgence + caution;
     }, 0);
 
     return {
@@ -242,17 +242,17 @@ export function Contrats() {
   const handleUniteChange = useCallback(
     (uniteId: string) => {
       const unite = unites.find((u) => u.id === uniteId);
-      let commissionBailleur = '';
+      let cautionBailleur = '';
 
       if (unite && unite.immeubles?.bailleurs) {
-        commissionBailleur = (unite.immeubles.bailleurs.commission || 0).toString();
+        cautionBailleur = (unite.immeubles.bailleurs.commission || 0).toString();
       }
 
       setFormData((prev) => ({
         ...prev,
         unite_id: uniteId,
         loyer_mensuel: unite ? unite.loyer_base.toString() : '',
-        commission: commissionBailleur,
+        caution: cautionBailleur,
       }));
     },
     [unites]
@@ -305,8 +305,8 @@ export function Contrats() {
           date_debut: formData.date_debut,
           date_fin: formData.date_fin || null,
           loyer_mensuel: parseFloat(formData.loyer_mensuel),
-          commission: formData.commission ? parseFloat(formData.commission) : null,
           caution: formData.caution ? parseFloat(formData.caution) : null,
+          commission: formData.commission ? parseFloat(formData.commission) : null,
           pourcentage_agence: parseFloat(formData.pourcentage_agence),
           statut: formData.statut,
         };
@@ -350,8 +350,8 @@ export function Contrats() {
         const data: any = {
           statut: formData.statut,
           date_fin: formData.date_fin || null,
-          commission: formData.commission ? parseFloat(formData.commission) : null,
           caution: formData.caution ? parseFloat(formData.caution) : null,
+          commission: formData.commission ? parseFloat(formData.commission) : null,
         };
 
         const { error: updateError } = await supabase
@@ -394,8 +394,8 @@ export function Contrats() {
       date_debut: contrat.date_debut,
       date_fin: contrat.date_fin || '',
       loyer_mensuel: contrat.loyer_mensuel.toString(),
-      commission: contrat.commission?.toString() || '',
       caution: contrat.caution?.toString() || '',
+      commission: contrat.commission?.toString() || '',
       pourcentage_agence: contrat.pourcentage_agence.toString(),
       statut: contrat.statut,
     });
@@ -489,8 +489,8 @@ export function Contrats() {
         label: 'Revenue',
         render: (c: Contrat) => {
           const partAgence = (c.loyer_mensuel * (c.pourcentage_agence || 0)) / 100;
-          const commission = c.commission || 0;
-          return formatCurrency(partAgence + commission);
+          const caution = c.caution || 0;
+          return formatCurrency(partAgence + caution);
         },
       },
       {
@@ -757,13 +757,13 @@ export function Contrats() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-                Commission (F CFA)
+                Caution (F CFA)
               </label>
               <input
                 type="number"
-                value={formData.commission}
+                value={formData.caution}
                 onChange={(e) =>
-                  setFormData({ ...formData, commission: e.target.value })
+                  setFormData({ ...formData, caution: e.target.value })
                 }
                 placeholder="Auto-rempli"
                 className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none bg-slate-50"
@@ -775,13 +775,13 @@ export function Contrats() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-                Caution
+                Commission
               </label>
               <input
                 type="number"
-                value={formData.caution}
+                value={formData.commission}
                 onChange={(e) =>
-                  setFormData({ ...formData, caution: e.target.value })
+                  setFormData({ ...formData, commission: e.target.value })
                 }
                 className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
               />
@@ -853,7 +853,22 @@ export function Contrats() {
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-              Commission (F CFA)
+              Caution (F CFA)
+            </label>
+            <input
+              type="number"
+              value={formData.caution}
+              onChange={(e) =>
+                setFormData({ ...formData, caution: e.target.value })
+              }
+              placeholder="Optionnel"
+              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Commission
             </label>
             <input
               type="number"
@@ -866,10 +881,26 @@ export function Contrats() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-              Caution
-            </label>
-            <input
-              type="number"
-              value={formData.caution}
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              onClick={closeEditModal}
+              disabled={submitting}
+              className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition disabled:opacity-50"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleEditSubmit}
+              disabled={submitting}
+              className="px-6 py-2 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.red})` }}
+            >
+              {submitting ? 'Modification...' : 'Modifier le contrat'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
