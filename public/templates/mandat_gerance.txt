@@ -7,7 +7,7 @@ Objet du mandat : Le propriétaire confie à CONFORT IMMO ARCHI la gestion compl
 Durée : Le mandat est conclu à compter du {{date_debut}} pour une durée de 3 ans, renouvelable par tacite reconduction. Chaque partie peut y mettre fin par LRAR six (6) mois avant l’échéance.
 
 Conditions principales :
-1) L’agence percevra à titre d’honoraires un taux de {{taux_honoraires}}% des sommes mensuellement encaissées.
+1) L’agence percevra à titre d’honoraires un taux de  {{taux_honoraires}}% des sommes mensuellement encaissées.
 2) Elle assure la perception des loyers, la rédaction des contrats, et le suivi juridique et technique des biens.
 3) Elle peut représenter le propriétaire dans toute action judiciaire ou extrajudiciaire liée à la gestion.
 4) En cas de litige, le Tribunal de commerce de Dakar est seul compétent.
