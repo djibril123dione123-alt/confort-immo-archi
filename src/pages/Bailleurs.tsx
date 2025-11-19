@@ -7,7 +7,7 @@ import { generateMandatBailleurPDF } from '../lib/pdf';
 import { useAuth } from '../contexts/AuthContext';
 
 /**
- * Interface Bailleur avec le nouveau champ debut_contrat
+ * Interface Bailleur avec les champs commission et debut_contrat
  */
 interface Bailleur {
   id: string;
@@ -18,7 +18,8 @@ interface Bailleur {
   adresse: string | null;
   piece_identite: string | null;
   notes: string | null;
-  debut_contrat: string | null; // ✅ Nouveau champ ajouté
+  commission: number | null;
+  debut_contrat: string | null;
   actif: boolean;
   created_at: string;
   updated_at?: string;
@@ -32,7 +33,8 @@ interface FormData {
   adresse: string;
   piece_identite: string;
   notes: string;
-  debut_contrat: string; // ✅ Nouveau champ ajouté
+  commission: string;
+  debut_contrat: string;
 }
 
 /**
@@ -68,7 +70,7 @@ export function Bailleurs() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // État du formulaire avec debut_contrat
+  // État du formulaire avec commission et debut_contrat
   const [formData, setFormData] = useState<FormData>({
     nom: '',
     prenom: '',
@@ -77,7 +79,8 @@ export function Bailleurs() {
     adresse: '',
     piece_identite: '',
     notes: '',
-    debut_contrat: '', // ✅ Nouveau champ initialisé
+    commission: '',
+    debut_contrat: '',
   });
 
   /**
@@ -88,7 +91,7 @@ export function Bailleurs() {
   }, []);
 
   /**
-   * Fonction de chargement des bailleurs avec gestion d'erreurs améliorée
+   * Fonction de chargement des bailleurs
    */
   const loadBailleurs = async () => {
     try {
@@ -113,7 +116,7 @@ export function Bailleurs() {
   };
 
   /**
-   * Filtrage des bailleurs basé sur la recherche (mémoïsé pour performance)
+   * Filtrage des bailleurs
    */
   const filteredBailleurs = useMemo(() => {
     if (!searchTerm.trim()) return bailleurs;
@@ -134,7 +137,7 @@ export function Bailleurs() {
   }, [searchTerm, bailleurs]);
 
   /**
-   * Soumission du formulaire (création ou modification)
+   * Soumission du formulaire
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,14 +157,24 @@ export function Bailleurs() {
       setIsSubmitting(true);
       setError(null);
 
+      const submitData = {
+        nom: formData.nom,
+        prenom: formData.prenom,
+        telephone: formData.telephone,
+        email: formData.email || null,
+        adresse: formData.adresse || null,
+        piece_identite: formData.piece_identite || null,
+        notes: formData.notes || null,
+        commission: formData.commission ? parseFloat(formData.commission) : null,
+        debut_contrat: formData.debut_contrat,
+        updated_at: new Date().toISOString(),
+      };
+
       if (editingBailleur) {
         // Mise à jour
         const { error: updateError } = await supabase
           .from('bailleurs')
-          .update({ 
-            ...formData, 
-            updated_at: new Date().toISOString() 
-          })
+          .update(submitData)
           .eq('id', editingBailleur.id);
 
         if (updateError) throw updateError;
@@ -170,7 +183,7 @@ export function Bailleurs() {
         const { error: insertError } = await supabase
           .from('bailleurs')
           .insert([{ 
-            ...formData, 
+            ...submitData,
             created_by: user?.id,
             actif: true 
           }]);
@@ -201,7 +214,8 @@ export function Bailleurs() {
       adresse: bailleur.adresse || '',
       piece_identite: bailleur.piece_identite || '',
       notes: bailleur.notes || '',
-      debut_contrat: bailleur.debut_contrat || '', // ✅ Pré-remplissage du nouveau champ
+      commission: bailleur.commission ? bailleur.commission.toString() : '',
+      debut_contrat: bailleur.debut_contrat || '',
     });
     setError(null);
     setIsModalOpen(true);
@@ -232,7 +246,7 @@ export function Bailleurs() {
   };
 
   /**
-   * Génération du PDF du mandat avec gestion d'erreurs
+   * Génération du PDF du mandat
    */
   const handleGenerateMandat = async (bailleur: Bailleur) => {
     try {
@@ -244,7 +258,7 @@ export function Bailleurs() {
   };
 
   /**
-   * Fermeture du modal et réinitialisation
+   * Fermeture du modal
    */
   const closeModal = () => {
     setIsModalOpen(false);
@@ -258,12 +272,13 @@ export function Bailleurs() {
       adresse: '',
       piece_identite: '',
       notes: '',
-      debut_contrat: '', // ✅ Réinitialisation du nouveau champ
+      commission: '',
+      debut_contrat: '',
     });
   };
 
   /**
-   * Formatage de la date pour l'affichage
+   * Formatage de la date
    */
   const formatDate = (dateString: string | null): string => {
     if (!dateString) return '-';
@@ -272,6 +287,14 @@ export function Bailleurs() {
     } catch {
       return '-';
     }
+  };
+
+  /**
+   * Formatage de la commission
+   */
+  const formatCommission = (commission: number | null): string => {
+    if (!commission) return '-';
+    return `${commission}%`;
   };
 
   /**
@@ -316,6 +339,15 @@ export function Bailleurs() {
         </a>
       ) : (
         <span className="text-slate-400">-</span>
+      )
+    },
+    { 
+      key: 'commission', 
+      label: 'Commission', 
+      render: (b: Bailleur) => (
+        <span className="font-semibold text-slate-700">
+          {formatCommission(b.commission)}
+        </span>
       )
     },
     { 
@@ -557,23 +589,43 @@ export function Bailleurs() {
               />
             </div>
 
-            {/* ✅ NOUVEAU CHAMP : Début du contrat */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Début du contrat <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                required
-                value={formData.debut_contrat}
-                onChange={(e) => setFormData({ ...formData, debut_contrat: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg 
-                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                         transition-all"
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                Date de début du contrat de gérance avec le bailleur
-              </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Commission (%) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  required
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={formData.commission}
+                  onChange={(e) => setFormData({ ...formData, commission: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           transition-all"
+                  placeholder="10"
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  Taux de commission appliqué aux contrats
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Début du contrat <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={formData.debut_contrat}
+                  onChange={(e) => setFormData({ ...formData, debut_contrat: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           transition-all"
+                />
+              </div>
             </div>
 
             <div>
