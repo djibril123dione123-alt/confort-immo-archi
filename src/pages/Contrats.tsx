@@ -34,7 +34,7 @@ interface Bailleur {
   prenom: string;
   telephone?: string;
   adresse?: string;
-  commission?: number;
+  taux_commission?: number;
 }
 
 interface Immeuble {
@@ -148,7 +148,7 @@ export function Contrats() {
               immeubles(
                 nom,
                 adresse,
-                bailleurs(id, nom, prenom, telephone, adresse, commission)
+                bailleurs(id, nom, prenom, telephone, adresse, taux_commission)
               )
             )
           `)
@@ -160,13 +160,13 @@ export function Contrats() {
           .order('nom', { ascending: true }),
         supabase
           .from('unites')
-          .select('id, nom, loyer_base, statut, immeubles(nom, bailleurs(id, nom, prenom, commission))')
+          .select('id, nom, loyer_base, statut, immeubles(nom, bailleurs(id, nom, prenom, taux_commission))')
           .eq('actif', true)
           .eq('statut', 'libre')
           .order('nom', { ascending: true }),
         supabase
           .from('bailleurs')
-          .select('id, nom, prenom, telephone, adresse, commission')
+          .select('id, nom, prenom, telephone, adresse, taux_commission')
           .eq('actif', true)
           .order('nom', { ascending: true }),
       ]);
@@ -223,8 +223,8 @@ export function Contrats() {
     const actifs = contrats.filter((c) => c.statut === 'actif');
     const revenuTotal = actifs.reduce((sum, c) => {
       const partAgence = (c.loyer_mensuel * (c.pourcentage_agence || 0)) / 100;
-      const caution = c.caution || 0;
-      return sum + partAgence + caution;
+      const commission = c.commission || 0;
+      return sum + partAgence + commission;
     }, 0);
 
     return {
@@ -242,17 +242,17 @@ export function Contrats() {
   const handleUniteChange = useCallback(
     (uniteId: string) => {
       const unite = unites.find((u) => u.id === uniteId);
-      let cautionBailleur = '';
+      let commissionBailleur = '';
 
       if (unite && unite.immeubles?.bailleurs) {
-        cautionBailleur = (unite.immeubles.bailleurs.commission || 0).toString();
+        commissionBailleur = (unite.immeubles.bailleurs.taux_commission || 0).toString();
       }
 
       setFormData((prev) => ({
         ...prev,
         unite_id: uniteId,
         loyer_mensuel: unite ? unite.loyer_base.toString() : '',
-        caution: cautionBailleur,
+        commission: commissionBailleur,
       }));
     },
     [unites]
@@ -489,8 +489,8 @@ export function Contrats() {
         label: 'Revenue',
         render: (c: Contrat) => {
           const partAgence = (c.loyer_mensuel * (c.pourcentage_agence || 0)) / 100;
-          const caution = c.caution || 0;
-          return formatCurrency(partAgence + caution);
+          const commission = c.commission || 0;
+          return formatCurrency(partAgence + commission);
         },
       },
       {
@@ -757,13 +757,13 @@ export function Contrats() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-                Caution (F CFA)
+                Commission (F CFA)
               </label>
               <input
                 type="number"
-                value={formData.caution}
+                value={formData.commission}
                 onChange={(e) =>
-                  setFormData({ ...formData, caution: e.target.value })
+                  setFormData({ ...formData, commission: e.target.value })
                 }
                 placeholder="Auto-rempli"
                 className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none bg-slate-50"
@@ -775,13 +775,13 @@ export function Contrats() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-                Commission
+                Caution
               </label>
               <input
                 type="number"
-                value={formData.commission}
+                value={formData.caution}
                 onChange={(e) =>
-                  setFormData({ ...formData, commission: e.target.value })
+                  setFormData({ ...formData, caution: e.target.value })
                 }
                 className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
               />
