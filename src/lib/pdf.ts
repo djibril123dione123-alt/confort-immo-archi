@@ -350,12 +350,9 @@ export async function generatePaiementFacturePDF(paiement: any) {
  */
 export async function generateMandatBailleurPDF(bailleur: any) {
   if (!bailleur) throw new Error('Aucun bailleur fourni');
-
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
-
   try {
     const tpl = await fetchTemplate('/templates/mandat_gerance.txt');
-
     // Champs dynamiques
     const vars: Record<string, string> = {
       bailleur_prenom: bailleur.prenom || '',
@@ -364,26 +361,22 @@ export async function generateMandatBailleurPDF(bailleur: any) {
       bailleur_adresse: bailleur.adresse || '',
       bien_adresse: bailleur.bien_adresse || '',
       bien_composition: bailleur.bien_composition || '',
-      taux_honoraires: bailleur.taux_honoraires ? String(bailleur.taux_honoraires) : '10',
+      taux_honoraires: bailleur.commission ? String(bailleur.commission) : '10',
       date_debut: bailleur.debut_contrat
         ? new Date(bailleur.debut_contrat).toLocaleDateString('fr-FR')
         : new Date().toLocaleDateString('fr-FR'),
       duree_annees: bailleur.duree_annees ? String(bailleur.duree_annees) : '1',
       date_du_jour: new Date().toLocaleDateString('fr-FR'),
     };
-
     let body = tpl;
     const dynamicValues: string[] = [];
-
     // Remplacer les {{key}} par la valeur réelle et garder la liste pour gras
     body = body.replace(/\{\{(.*?)\}\}/g, (_match, key) => {
       const value = vars[key.trim()] ?? '';
       if (value) dynamicValues.push(value);
       return value;
     });
-
     if (!body.trim()) body = 'Contenu du mandat vide.';
-
     const pageWidth = doc.internal.pageSize.getWidth();
     const leftMargin = 14;
     const usableWidth = pageWidth - leftMargin - 14;
@@ -392,28 +385,22 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     const bodyFontSize = 11;
     const lineHeight = 7;
     drawPageBorder(doc); // bordure sur la première page
-
-
     // TITRE UNIQUEMENT SUR LA PREMIÈRE PAGE
     doc.setFont(undefined, 'bold');
     doc.setFontSize(titleFontSize);
     doc.text(title, pageWidth / 2, 15, { align: 'center' });
-
     doc.setFont(undefined, 'normal');
     doc.setFontSize(bodyFontSize);
-
     const lines = doc.splitTextToSize(body, usableWidth);
     const pageHeight = doc.internal.pageSize.getHeight();
     const marginBottom = 20;
     let y = 25;
-
     for (const line of lines) {
       if (y > pageHeight - marginBottom) {
         doc.addPage();
-        drawPageBorder(doc);s
+        drawPageBorder(doc);
         y = 25; // nouvelle page, mais **pas de titre**
       }
-
       // Vérifier si la ligne contient une valeur dynamique et mettre en gras
       let x = leftMargin;
       let remainingLine = line;
@@ -442,7 +429,6 @@ export async function generateMandatBailleurPDF(bailleur: any) {
           remainingLine = '';
         }
       }
-
       y += lineHeight;
     }
   } catch {
@@ -451,7 +437,6 @@ export async function generateMandatBailleurPDF(bailleur: any) {
     const text = `Mandat de gérance\nPropriétaire: ${bailleur.prenom || ''} ${bailleur.nom || ''}`;
     doc.text(doc.splitTextToSize(text, 182), 14, 50);
   }
-
   addFooter(doc);
   doc.save(`mandat-${bailleur.nom || 'bailleur'}-${Date.now()}.pdf`);
 }
