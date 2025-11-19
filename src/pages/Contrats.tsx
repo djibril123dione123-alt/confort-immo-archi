@@ -148,7 +148,7 @@ export function Contrats() {
               immeubles(
                 nom,
                 adresse,
-                bailleurs(id, nom, prenom, telephone, adresse, taux_commission)
+                bailleurs(id, nom, prenom, telephone, adresse, commission)
               )
             )
           `)
@@ -160,13 +160,13 @@ export function Contrats() {
           .order('nom', { ascending: true }),
         supabase
           .from('unites')
-          .select('id, nom, loyer_base, statut, immeubles(nom, bailleurs(id, nom, prenom, taux_commission))')
+          .select('id, nom, loyer_base, statut, immeubles(nom, bailleurs(id, nom, prenom, commission))')
           .eq('actif', true)
           .eq('statut', 'libre')
           .order('nom', { ascending: true }),
         supabase
           .from('bailleurs')
-          .select('id, nom, prenom, telephone, adresse, taux_commission')
+          .select('id, nom, prenom, telephone, adresse, commission')
           .eq('actif', true)
           .order('nom', { ascending: true }),
       ]);
@@ -245,7 +245,7 @@ export function Contrats() {
       let commissionBailleur = '';
 
       if (unite && unite.immeubles?.bailleurs) {
-        commissionBailleur = (unite.immeubles.bailleurs.taux_commission || 0).toString();
+        commissionBailleur = (unite.immeubles.bailleurs.commission || 0).toString();
       }
 
       setFormData((prev) => ({
@@ -757,7 +757,7 @@ export function Contrats() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-                Commission (F CFA)
+                Commission (%)
               </label>
               <input
                 type="number"
@@ -770,12 +770,12 @@ export function Contrats() {
                 disabled
               />
               <p className="text-xs text-slate-500 mt-1">
-                Définie par le bailleur
+                Taux défini par le bailleur
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-                Caution
+                Caution (F CFA)
               </label>
               <input
                 type="number"
