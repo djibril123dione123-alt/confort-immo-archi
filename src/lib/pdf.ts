@@ -366,7 +366,7 @@ export async function generateMandatBailleurPDF(bailleur: any) {
       bien_composition: bailleur.bien_composition || '',
       taux_honoraires: bailleur.taux_honoraires ? String(bailleur.taux_honoraires) : '10',
       date_debut: bailleur.debut_contrat
-        ? new Date(bailleur.date_debut).toLocaleDateString('fr-FR')
+        ? new Date(bailleur.debut_contrat).toLocaleDateString('fr-FR')
         : new Date().toLocaleDateString('fr-FR'),
       duree_annees: bailleur.duree_annees ? String(bailleur.duree_annees) : '1',
       date_du_jour: new Date().toLocaleDateString('fr-FR'),
