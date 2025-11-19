@@ -60,7 +60,6 @@ interface Contrat {
   loyer_mensuel: number;
   commission?: number;
   caution?: number;
-  pourcentage_agence: number;
   statut: 'actif' | 'expire' | 'resilie';
   created_at?: string;
   locataires?: Locataire;
@@ -75,7 +74,6 @@ interface FormData {
   loyer_mensuel: string;
   caution: string;
   commission: string;
-  pourcentage_agence: string;
   statut: 'actif' | 'expire' | 'resilie';
 }
 
@@ -90,7 +88,6 @@ const INITIAL_FORM_DATA: FormData = {
   loyer_mensuel: '',
   caution: '',
   commission: '',
-  pourcentage_agence: '10',
   statut: 'actif',
 };
 
@@ -222,7 +219,7 @@ export function Contrats() {
   const stats = useMemo(() => {
     const actifs = contrats.filter((c) => c.statut === 'actif');
     const revenuTotal = actifs.reduce((sum, c) => {
-      const partAgence = (c.loyer_mensuel * (c.pourcentage_agence || 0)) / 100;
+      const partAgence = (c.loyer_mensuel * (c.commission || 0)) / 100;
       const commission = c.commission || 0;
       return sum + partAgence + commission;
     }, 0);
