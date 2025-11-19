@@ -221,6 +221,7 @@ export function Contrats() {
     const revenuTotal = actifs.reduce((sum, c) => {
       const partAgence = (c.loyer_mensuel * (c.commission || 0)) / 100;
       const commission = c.commission || 0;
+      const caution = c.caution || 0;           // montant en CFA
       return sum + partAgence + commission;
     }, 0);
 
