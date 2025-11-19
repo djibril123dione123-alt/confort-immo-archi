@@ -66,13 +66,13 @@ export function Paiements() {
                 supabase
                     .from('paiements')
                     .select(
-                        '*, contrats(loyer_mensuel, pourcentage_agence, locataires(nom, prenom), unites(nom,id))' // Ajout de 'id' pour unites [15]
+                        '*, contrats(loyer_mensuel, commission, locataires(nom, prenom), unites(nom,id))' // Ajout de 'id' pour unites [15]
                     )
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('contrats')
                     .select(
-                        'id, loyer_mensuel, pourcentage_agence, locataires(nom, prenom), unites(nom)'
+                        'id, loyer_mensuel, commission, locataires(nom, prenom), unites(nom)'
                     )
                     .eq('statut', 'actif'),
             ]);
@@ -134,7 +134,7 @@ export function Paiements() {
             if (!contrat) throw new Error('Contrat non trouvé'); // [19, 20]
 
             const montantTotal = parseFloat(formData.montant_total);
-            const partAgence = (montantTotal * contrat.pourcentage_agence) / 100; // Calcul de la part Agence [20, 22]
+            const partAgence = (montantTotal * contrat.comission) / 100; // Calcul de la part Agence [20, 22]
             const partBailleur = montantTotal - partAgence; // Calcul de la part Bailleur [20, 22]
 
             const moisConcerne = new Date(formData.mois_display + '-01')
@@ -212,7 +212,7 @@ export function Paiements() {
                 .select(`
                     id, created_at, date_paiement, mois_concerne, montant_total, reference,
                     contrats(
-                        id, loyer_mensuel, pourcentage_agence,
+                        id, loyer_mensuel, commission,
                         locataires(nom, prenom),
                         unites(id, nom)
                     )
