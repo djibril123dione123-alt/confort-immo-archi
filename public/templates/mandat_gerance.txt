@@ -1,10 +1,10 @@
-Entre :
+sEntre :
 M. {{bailleur_prenom}} {{bailleur_nom}}, carte d’identité/passeport n° {{bailleur_cni}}, (Propriétaire), domicilié à {{bailleur_adresse}}, d’une part ;
 Et la société CONFORT IMMO ARCHI, domiciliée à Ouakam cité Comico, en face de l’école 6, NINEA : 004786317 / RC : SN.DKR.2016.M.27828, représentée par M. PAPA MOUHAMADOU FALL, Chef d’agence, d’autre part.
 
 Objet du mandat : Le propriétaire confie à CONFORT IMMO ARCHI la gestion complète de son bien immobilier sis à {{bien_adresse}} composé de {{bien_composition}} dans son état actuel à la remise des clés.
 
-Durée : Le mandat est conclu à compter du {{bailleur.debut_contrat}} pour une durée de 3 ans, renouvelable par tacite reconduction. Chaque partie peut y mettre fin par LRAR six (6) mois avant l’échéance.
+Durée : Le mandat est conclu à compter du {{date_debut}} pour une durée de {{duree_annees}} an(s), renouvelable par tacite reconduction. Chaque partie peut y mettre fin par LRAR six (6) mois avant l’échéance.
 
 Conditions principales :
 1) L’agence percevra à titre d’honoraires un taux de {{taux_honoraires}}% des sommes mensuellement encaissées.
