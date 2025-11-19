@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
 import { Table } from '../components/ui/Table';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, FileText, AlertCircle } from 'lucide-react';
 import { generateMandatBailleurPDF } from '../lib/pdf';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * Interface Bailleur avec le nouveau champ debut_contrat
+ */
 interface Bailleur {
   id: string;
   nom: string;
@@ -15,19 +18,58 @@ interface Bailleur {
   adresse: string | null;
   piece_identite: string | null;
   notes: string | null;
+  debut_contrat: string | null; // ✅ Nouveau champ ajouté
   actif: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
+interface FormData {
+  nom: string;
+  prenom: string;
+  telephone: string;
+  email: string;
+  adresse: string;
+  piece_identite: string;
+  notes: string;
+  debut_contrat: string; // ✅ Nouveau champ ajouté
+}
+
+/**
+ * Composant d'alerte pour les erreurs
+ */
+const ErrorAlert: React.FC<{ message: string; onClose: () => void }> = ({ message, onClose }) => (
+  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+    <div className="flex-1">
+      <p className="text-sm text-red-800">{message}</p>
+    </div>
+    <button
+      onClick={onClose}
+      className="text-red-600 hover:text-red-800 transition"
+    >
+      ✕
+    </button>
+  </div>
+);
+
+/**
+ * Composant principal - Gestion des Bailleurs
+ */
 export function Bailleurs() {
   const { user } = useAuth();
+  
+  // États
   const [bailleurs, setBailleurs] = useState<Bailleur[]>([]);
-  const [filteredBailleurs, setFilteredBailleurs] = useState<Bailleur[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBailleur, setEditingBailleur] = useState<Bailleur | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [formData, setFormData] = useState({
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // État du formulaire avec debut_contrat
+  const [formData, setFormData] = useState<FormData>({
     nom: '',
     prenom: '',
     telephone: '',
@@ -35,67 +77,121 @@ export function Bailleurs() {
     adresse: '',
     piece_identite: '',
     notes: '',
+    debut_contrat: '', // ✅ Nouveau champ initialisé
   });
 
+  /**
+   * Chargement initial des bailleurs
+   */
   useEffect(() => {
     loadBailleurs();
   }, []);
 
-  useEffect(() => {
-    const filtered = bailleurs.filter(b =>
-      `${b.nom} ${b.prenom} ${b.telephone} ${b.email || ''}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-    setFilteredBailleurs(filtered);
-  }, [searchTerm, bailleurs]);
-
+  /**
+   * Fonction de chargement des bailleurs avec gestion d'erreurs améliorée
+   */
   const loadBailleurs = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
         .from('bailleurs')
         .select('*')
         .eq('actif', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
+      
       setBailleurs(data || []);
-      setFilteredBailleurs(data || []);
-    } catch (error) {
-      console.error('Error loading bailleurs:', error);
+    } catch (err) {
+      console.error('Erreur lors du chargement des bailleurs:', err);
+      setError('Impossible de charger les bailleurs. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Filtrage des bailleurs basé sur la recherche (mémoïsé pour performance)
+   */
+  const filteredBailleurs = useMemo(() => {
+    if (!searchTerm.trim()) return bailleurs;
+
+    const searchLower = searchTerm.toLowerCase();
+    return bailleurs.filter(b => {
+      const searchableText = [
+        b.nom,
+        b.prenom,
+        b.telephone,
+        b.email || '',
+        b.adresse || '',
+        b.piece_identite || ''
+      ].join(' ').toLowerCase();
+
+      return searchableText.includes(searchLower);
+    });
+  }, [searchTerm, bailleurs]);
+
+  /**
+   * Soumission du formulaire (création ou modification)
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation basique
+    if (!formData.nom.trim() || !formData.prenom.trim() || !formData.telephone.trim()) {
+      setError('Les champs Nom, Prénom et Téléphone sont obligatoires.');
+      return;
+    }
+
+    if (!formData.debut_contrat) {
+      setError('La date de début du contrat est obligatoire.');
+      return;
+    }
 
     try {
+      setIsSubmitting(true);
+      setError(null);
+
       if (editingBailleur) {
-        const { error } = await supabase
+        // Mise à jour
+        const { error: updateError } = await supabase
           .from('bailleurs')
-          .update({ ...formData, updated_at: new Date().toISOString() })
+          .update({ 
+            ...formData, 
+            updated_at: new Date().toISOString() 
+          })
           .eq('id', editingBailleur.id);
 
-        if (error) throw error;
+        if (updateError) throw updateError;
       } else {
-        const { error } = await supabase
+        // Création
+        const { error: insertError } = await supabase
           .from('bailleurs')
-          .insert([{ ...formData, created_by: user?.id }]);
+          .insert([{ 
+            ...formData, 
+            created_by: user?.id,
+            actif: true 
+          }]);
 
-        if (error) throw error;
+        if (insertError) throw insertError;
       }
 
       closeModal();
-      loadBailleurs();
-    } catch (error) {
-      console.error('Error saving bailleur:', error);
-      alert('Erreur lors de l\'enregistrement');
+      await loadBailleurs();
+    } catch (err: any) {
+      console.error('Erreur lors de l\'enregistrement:', err);
+      setError(err.message || 'Erreur lors de l\'enregistrement du bailleur.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleEdit = (bailleur: Bailleur) => {
+  /**
+   * Ouverture du modal en mode édition
+   */
+  const handleEdit = useCallback((bailleur: Bailleur) => {
     setEditingBailleur(bailleur);
     setFormData({
       nom: bailleur.nom,
@@ -105,30 +201,55 @@ export function Bailleurs() {
       adresse: bailleur.adresse || '',
       piece_identite: bailleur.piece_identite || '',
       notes: bailleur.notes || '',
+      debut_contrat: bailleur.debut_contrat || '', // ✅ Pré-remplissage du nouveau champ
     });
+    setError(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
+  /**
+   * Suppression logique d'un bailleur
+   */
   const handleDelete = async (bailleur: Bailleur) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce bailleur ?')) return;
+    const confirmMessage = `Êtes-vous sûr de vouloir supprimer ${bailleur.prenom} ${bailleur.nom} ?`;
+    if (!confirm(confirmMessage)) return;
 
     try {
-      const { error } = await supabase
+      setError(null);
+
+      const { error: deleteError } = await supabase
         .from('bailleurs')
-        .update({ actif: false })
+        .update({ actif: false, updated_at: new Date().toISOString() })
         .eq('id', bailleur.id);
 
-      if (error) throw error;
-      loadBailleurs();
-    } catch (error) {
-      console.error('Error deleting bailleur:', error);
-      alert('Erreur lors de la suppression');
+      if (deleteError) throw deleteError;
+      
+      await loadBailleurs();
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err);
+      setError('Erreur lors de la suppression du bailleur.');
     }
   };
 
+  /**
+   * Génération du PDF du mandat avec gestion d'erreurs
+   */
+  const handleGenerateMandat = async (bailleur: Bailleur) => {
+    try {
+      await generateMandatBailleurPDF(bailleur);
+    } catch (err) {
+      console.error('Erreur génération PDF:', err);
+      setError('Impossible de générer le mandat PDF.');
+    }
+  };
+
+  /**
+   * Fermeture du modal et réinitialisation
+   */
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingBailleur(null);
+    setError(null);
     setFormData({
       nom: '',
       prenom: '',
@@ -137,165 +258,367 @@ export function Bailleurs() {
       adresse: '',
       piece_identite: '',
       notes: '',
+      debut_contrat: '', // ✅ Réinitialisation du nouveau champ
     });
   };
 
+  /**
+   * Formatage de la date pour l'affichage
+   */
+  const formatDate = (dateString: string | null): string => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleDateString('fr-FR');
+    } catch {
+      return '-';
+    }
+  };
+
+  /**
+   * Configuration des colonnes du tableau
+   */
   const columns = [
-    { key: 'nom', label: 'Nom' },
-    { key: 'prenom', label: 'Prénom' },
-    { key: 'telephone', label: 'Téléphone' },
-    { key: 'email', label: 'Email', render: (b: Bailleur) => b.email || '-' },
-    { key: 'adresse', label: 'Adresse', render: (b: Bailleur) => b.adresse || '-' },
-    { key: 'mandat', label: 'Mandat', render: (b: Bailleur) => (
-      <button
-        onClick={() => generateMandatBailleurPDF(b)}
-        className="px-1 py-1 text-sm font-medium text-white rounded-lg shadow-md 
-             transition-all duration-300 transform hover:scale-105"
-         style={{
-    background: 'linear-gradient(135deg, #F58220 0%, #C0392B 100%)',
-  }}
-      >
-        Mandat PDF
-      </button>
-    ) },
+    { 
+      key: 'nom', 
+      label: 'Nom',
+      render: (b: Bailleur) => (
+        <span className="font-medium text-slate-900">{b.nom}</span>
+      )
+    },
+    { 
+      key: 'prenom', 
+      label: 'Prénom',
+      render: (b: Bailleur) => (
+        <span className="font-medium text-slate-900">{b.prenom}</span>
+      )
+    },
+    { 
+      key: 'telephone', 
+      label: 'Téléphone',
+      render: (b: Bailleur) => (
+        <a 
+          href={`tel:${b.telephone}`}
+          className="text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          {b.telephone}
+        </a>
+      )
+    },
+    { 
+      key: 'email', 
+      label: 'Email', 
+      render: (b: Bailleur) => b.email ? (
+        <a 
+          href={`mailto:${b.email}`}
+          className="text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          {b.email}
+        </a>
+      ) : (
+        <span className="text-slate-400">-</span>
+      )
+    },
+    { 
+      key: 'debut_contrat', 
+      label: 'Début contrat', 
+      render: (b: Bailleur) => (
+        <span className={b.debut_contrat ? 'text-slate-700' : 'text-slate-400'}>
+          {formatDate(b.debut_contrat)}
+        </span>
+      )
+    },
+    { 
+      key: 'mandat', 
+      label: 'Actions', 
+      render: (b: Bailleur) => (
+        <button
+          onClick={() => handleGenerateMandat(b)}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white rounded-lg shadow-md 
+                   transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+          style={{
+            background: 'linear-gradient(135deg, #F58220 0%, #C0392B 100%)',
+          }}
+          title="Générer le mandat de gérance"
+        >
+          <FileText className="w-4 h-4" />
+          Mandat PDF
+        </button>
+      )
+    },
   ];
 
+  /**
+   * Affichage du loader
+   */
   if (loading) {
-    return <div className="flex items-center justify-center h-full"><div className="text-lg text-slate-600">Chargement...</div></div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-lg text-slate-600">Chargement des bailleurs...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-7xl mx-auto">
+      {/* En-tête */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Bailleurs</h1>
-          <p className="text-slate-600">Gestion des propriétaires</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Bailleurs
+          </h1>
+          <p className="text-slate-600">
+            Gestion des propriétaires • {bailleurs.length} bailleur{bailleurs.length > 1 ? 's' : ''}
+          </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg 
+                   hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
         >
           <Plus className="w-5 h-5" />
           Nouveau bailleur
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <div className="mb-6">
+      {/* Affichage des erreurs globales */}
+      {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
+
+      {/* Conteneur principal */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        {/* Barre de recherche */}
+        <div className="p-6 border-b border-slate-200 bg-slate-50">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Rechercher un bailleur..."
+              placeholder="Rechercher par nom, prénom, téléphone, email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg 
+                       focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       transition-all"
             />
           </div>
+          {searchTerm && (
+            <p className="mt-2 text-sm text-slate-600">
+              {filteredBailleurs.length} résultat{filteredBailleurs.length > 1 ? 's' : ''} trouvé{filteredBailleurs.length > 1 ? 's' : ''}
+            </p>
+          )}
         </div>
 
-        <Table
-          columns={columns}
-          data={filteredBailleurs}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        {/* Tableau */}
+        <div className="p-6">
+          {filteredBailleurs.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                <Search className="w-8 h-8 text-slate-400" />
+              </div>
+              <p className="text-lg font-medium text-slate-900 mb-1">
+                Aucun bailleur trouvé
+              </p>
+              <p className="text-slate-600">
+                {searchTerm 
+                  ? 'Essayez de modifier votre recherche' 
+                  : 'Commencez par créer votre premier bailleur'
+                }
+              </p>
+            </div>
+          ) : (
+            <Table
+              columns={columns}
+              data={filteredBailleurs}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
+        </div>
       </div>
 
+      {/* Modal de création/édition */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingBailleur ? 'Modifier le bailleur' : 'Nouveau bailleur'}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Erreurs dans le modal */}
+          {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
+
+          {/* Informations principales */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+              Informations principales
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Nom <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.nom}
+                  onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           transition-all"
+                  placeholder="Diop"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Prénom <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.prenom}
+                  onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           transition-all"
+                  placeholder="Amadou"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Téléphone <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={formData.telephone}
+                  onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           transition-all"
+                  placeholder="+221 77 123 45 67"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           transition-all"
+                  placeholder="amadou.diop@example.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Informations complémentaires */}
+          <div className="space-y-4 pt-4 border-t border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+              Informations complémentaires
+            </h3>
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Nom *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Adresse
+              </label>
               <input
                 type="text"
-                required
-                value={formData.nom}
-                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={formData.adresse}
+                onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                         transition-all"
+                placeholder="123 Avenue Blaise Diagne, Dakar"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Prénom *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Pièce d'identité
+              </label>
               <input
                 type="text"
-                required
-                value={formData.prenom}
-                onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={formData.piece_identite}
+                onChange={(e) => setFormData({ ...formData, piece_identite: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                         transition-all"
+                placeholder="CNI N° 1234567890123"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
+            {/* ✅ NOUVEAU CHAMP : Début du contrat */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Téléphone *</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Début du contrat <span className="text-red-500">*</span>
+              </label>
               <input
-                type="tel"
+                type="date"
                 required
-                value={formData.telephone}
-                onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={formData.debut_contrat}
+                onChange={(e) => setFormData({ ...formData, debut_contrat: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                         transition-all"
               />
+              <p className="mt-1 text-xs text-slate-500">
+                Date de début du contrat de gérance avec le bailleur
+              </p>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Notes
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg 
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                         transition-all resize-none"
+                placeholder="Notes supplémentaires..."
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Adresse</label>
-            <input
-              type="text"
-              value={formData.adresse}
-              onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Pièce d'identité</label>
-            <input
-              type="text"
-              value={formData.piece_identite}
-              onChange={(e) => setFormData({ ...formData, piece_identite: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
+          {/* Boutons d'action */}
+          <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
             <button
               type="button"
               onClick={closeModal}
-              className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition"
+              disabled={isSubmitting}
+              className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg 
+                       hover:bg-slate-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg 
+                       hover:bg-blue-700 transition-all shadow-md hover:shadow-lg
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       flex items-center gap-2"
             >
-              {editingBailleur ? 'Mettre à jour' : 'Créer'}
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Enregistrement...
+                </>
+              ) : (
+                editingBailleur ? 'Mettre à jour' : 'Créer'
+              )}
             </button>
           </div>
         </form>
