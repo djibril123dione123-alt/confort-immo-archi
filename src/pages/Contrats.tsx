@@ -305,8 +305,8 @@ export function Contrats() {
           date_debut: formData.date_debut,
           date_fin: formData.date_fin || null,
           loyer_mensuel: parseFloat(formData.loyer_mensuel),
-          caution: formData.caution ? parseFloat(formData.caution) : null,
           commission: formData.commission ? parseFloat(formData.commission) : null,
+          caution: formData.caution ? parseFloat(formData.caution) : null,
           pourcentage_agence: parseFloat(formData.pourcentage_agence),
           statut: formData.statut,
         };
@@ -350,8 +350,8 @@ export function Contrats() {
         const data: any = {
           statut: formData.statut,
           date_fin: formData.date_fin || null,
-          caution: formData.caution ? parseFloat(formData.caution) : null,
           commission: formData.commission ? parseFloat(formData.commission) : null,
+          caution: formData.caution ? parseFloat(formData.caution) : null,
         };
 
         const { error: updateError } = await supabase
@@ -853,13 +853,13 @@ export function Contrats() {
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-              Caution (F CFA)
+              Commission (F CFA)
             </label>
             <input
               type="number"
-              value={formData.caution}
+              value={formData.commission}
               onChange={(e) =>
-                setFormData({ ...formData, caution: e.target.value })
+                setFormData({ ...formData, commission: e.target.value })
               }
               placeholder="Optionnel"
               className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
@@ -868,13 +868,13 @@ export function Contrats() {
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-              Commission
+              Caution
             </label>
             <input
               type="number"
-              value={formData.commission}
+              value={formData.caution}
               onChange={(e) =>
-                setFormData({ ...formData, commission: e.target.value })
+                setFormData({ ...formData, caution: e.target.value })
               }
               placeholder="Optionnel"
               className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none"
