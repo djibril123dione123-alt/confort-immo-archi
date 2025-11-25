@@ -1,6 +1,6 @@
 
 Entre les soussignés :
-M. {{bailleur_prenom}} {{bailleur_nom}} (Propriétaire), représenté(e) par M. PAPA MOUHAMADOU FALL, mandataire, d’une part;
+M. {{bailleur_prenom}} {{bailleur_nom}} (Propriétaire), représenté(e) par M. PAPA MOUHAMADOU FALL CNI n° 1761198600458, mandataire, d’une part;
 Et M. {{locataire_prenom}} {{locataire_nom}} (Locataire), Pièce d’identité (CNI) ou Passeport n° {{locataire_cni}}, demeurant à {{locataire_adresse}}, d’autre part.
 
 Il a été arrêté et convenu ce qui suit :
