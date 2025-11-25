@@ -239,13 +239,16 @@ export function Unites() {
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Sélectionner</option>
-                <option>Appartement</option>
-                <option>Studio</option>
+                <option>Appartement F3</option>
+                <option>Appartement F4</option>
+                <option>Appartement F5</option>
+                <option>Appartement F6</option>
+                <option>Villa</option>
                 <option>Chambre</option>
-                <option>Boutique</option>
-                <option>Bureau</option>
+                <option>Chambre + SDB</option>
+                <option>Studio</option>
+                <option>Mini Studio</option>
                 <option>Magasin</option>
-                <option>Maison</option>
               </select>
             </div>
             <div>
