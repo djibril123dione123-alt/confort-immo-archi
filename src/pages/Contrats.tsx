@@ -61,6 +61,7 @@ interface Contrat {
   commission?: number;
   caution?: number;
   statut: 'actif' | 'expire' | 'resilie';
+  destination?: string;
   created_at?: string;
   locataires?: Locataire;
   unites?: Unite;
@@ -75,6 +76,7 @@ interface FormData {
   caution: string;
   commission: string;
   statut: 'actif' | 'expire' | 'resilie';
+  destination: 'Habitation' | 'Commercial' | '';
 }
 
 // =========================
@@ -89,6 +91,7 @@ const INITIAL_FORM_DATA: FormData = {
   caution: '',
   commission: '',
   statut: 'actif',
+  destination: '',
 };
 
 // =========================
@@ -203,12 +206,14 @@ export function Contrats() {
       const unite = c.unites?.nom?.toLowerCase() || '';
       const immeuble = c.unites?.immeubles?.nom?.toLowerCase() || '';
       const statut = c.statut.toLowerCase();
+      const destination = c.destination?.toLowerCase() || '';
 
       return (
         locataire.includes(term) ||
         unite.includes(term) ||
         immeuble.includes(term) ||
-        statut.includes(term)
+        statut.includes(term) ||
+        destination.includes(term)
       );
     });
   }, [searchTerm, contrats]);
@@ -220,8 +225,7 @@ export function Contrats() {
     const actifs = contrats.filter((c) => c.statut === 'actif');
     const revenuTotal = actifs.reduce((sum, c) => {
       const partAgence = (c.loyer_mensuel * (c.commission || 0)) / 100;
-      const commission = c.commission || 0;
-      const caution = c.caution || 0;           // montant en CFA
+      const caution = c.caution || 0;
       return sum + partAgence + caution;
     }, 0);
 
@@ -263,6 +267,7 @@ export function Contrats() {
     if (!formData.locataire_id) return 'Veuillez sélectionner un locataire';
     if (!formData.unite_id) return 'Veuillez sélectionner un produit';
     if (!formData.date_debut) return 'Veuillez saisir la date de début';
+    if (!formData.destination) return 'Veuillez sélectionner la destination';
     if (!formData.loyer_mensuel || parseFloat(formData.loyer_mensuel) <= 0) {
       return 'Veuillez saisir un loyer valide';
     }
@@ -306,6 +311,7 @@ export function Contrats() {
           commission: formData.commission ? parseFloat(formData.commission) : null,
           caution: formData.caution ? parseFloat(formData.caution) : null,
           statut: formData.statut,
+          destination: formData.destination,
         };
 
         const { error: insertError } = await supabase
@@ -394,6 +400,7 @@ export function Contrats() {
       caution: contrat.caution?.toString() || '',
       commission: contrat.commission?.toString() || '',
       statut: contrat.statut,
+      destination: (contrat.destination as any) || '',
     });
     setIsEditModalOpen(true);
   }, []);
@@ -470,6 +477,21 @@ export function Contrats() {
         render: (c: Contrat) => c.unites?.immeubles?.nom || '-',
       },
       {
+        key: 'destination',
+        label: 'Destination',
+        render: (c: Contrat) => (
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
+              c.destination === 'Commercial'
+                ? 'bg-purple-100 text-purple-700'
+                : 'bg-blue-100 text-blue-700'
+            }`}
+          >
+            {c.destination || 'Non spécifié'}
+          </span>
+        ),
+      },
+      {
         key: 'date_debut',
         label: 'Début',
         render: (c: Contrat) =>
@@ -485,8 +507,7 @@ export function Contrats() {
         label: 'Revenue',
         render: (c: Contrat) => {
           const partAgence = (c.loyer_mensuel * (c.commission || 0)) / 100;
-          const caution = c.caution || 0;           // montant en CFA
-          const commission = c.commission || 0;
+          const caution = c.caution || 0;
           return formatCurrency(partAgence + caution);
         },
       },
@@ -631,7 +652,7 @@ export function Contrats() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Rechercher un locataire, produit, immeuble..."
+              placeholder="Rechercher un locataire, produit, immeuble, destination..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border-2 border-slate-300 rounded-lg focus:outline-none focus:border-transparent transition-all"
@@ -705,6 +726,27 @@ export function Contrats() {
             <p className="text-xs text-slate-500 mt-1">
               Seuls les produits libres sont affichés
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
+              Destination *
+            </label>
+            <select
+              required
+              value={formData.destination}
+              onChange={(e) =>
+                setFormData({ ...formData, destination: e.target.value as any })
+              }
+              className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:outline-none transition-all"
+              style={{ 
+                boxShadow: formData.destination ? `0 0 0 3px rgba(245, 130, 32, 0.1)` : 'none'
+              }}
+            >
+              <option value="">Sélectionner la destination</option>
+              <option value="Habitation">Habitation</option>
+              <option value="Commercial">Commercial</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -850,7 +892,7 @@ export function Contrats() {
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-              Commission (F CFA)
+              Commission (%)
             </label>
             <input
               type="number"
@@ -865,7 +907,7 @@ export function Contrats() {
 
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: BRAND_COLORS.gray }}>
-              Caution
+              Caution (F CFA)
             </label>
             <input
               type="number"
