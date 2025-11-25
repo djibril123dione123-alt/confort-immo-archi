@@ -544,15 +544,10 @@ export function TableauDeBordFinancierGlobal() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         {/* Carte 1: Commission agence */}
                         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md">
-                            <p className="text-sm font-medium text-gray-500">Commission agence</p>
+                            <p className="text-sm font-medium text-gray-500"> Total Gérance</p>
                             <p className="text-2xl font-bold text-blue-600 mt-1">{formatCurrency(bilanEntreprise.commission)}</p>
                         </div>
 
-                        {/* Carte 2: Total revenus */}
-                         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md">
-                            <p className="text-sm font-medium text-gray-500">Total revenus</p>
-                            <p className="text-2xl font-bold text-blue-600 mt-1">{formatCurrency(bilanEntreprise.totalRevenus)}</p>
-                        </div>
 
                         {/* Carte 3: Total dépenses */}
                         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md">
