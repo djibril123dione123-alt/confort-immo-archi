@@ -138,7 +138,7 @@ export async function generateContratPDF(contrat: any) {
       locataire_cni: locataire.piece_identite || '',
       locataire_adresse: locataire.adresse_personnelle || '',
       designation: `${contrat?.unites?.nom || ''} - ${contrat?.unites?.immeubles?.nom || ''}`,
-      destination_local: contrat.destination || 'Habitation',
+      destination_local: contrat.destination || '',
       duree_annees: dureeAnnees,
       date_debut: contrat.date_debut ? new Date(contrat.date_debut).toLocaleDateString('fr-FR') : '…',
       date_fin: contrat.date_fin ? new Date(contrat.date_fin).toLocaleDateString('fr-FR') : '…',
